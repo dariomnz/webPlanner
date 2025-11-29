@@ -61,47 +61,91 @@ function App() {
     }
   };
 
+  const handleDragOver = (event) => {
+    const { active, over } = event;
+    if (!over) return;
+
+    const activeId = active.id;
+    const overId = over.id;
+
+    // Find if active item is already in the list (preview)
+    const isActiveInPlanner = plannedExercises.some(ex => ex.id === activeId);
+    const isOverPlanner = over.id === 'planner-droppable' || plannedExercises.some(ex => ex.id === overId);
+
+    // Case 1: Dragging from Menu
+    if (active.data.current?.type === 'menu-item') {
+      if (isOverPlanner) {
+        if (!isActiveInPlanner) {
+          // Insert preview
+          const newItem = {
+            id: activeId,
+            name: active.data.current.name,
+          };
+
+          setPlannedExercises((items) => {
+            const overIndex = items.findIndex((item) => item.id === overId);
+            const newIndex = overIndex >= 0 ? overIndex : items.length;
+            const newItems = [...items];
+            newItems.splice(newIndex, 0, newItem);
+            return newItems;
+          });
+        } else if (activeId !== overId) {
+          // Reorder preview item
+          setPlannedExercises((items) => {
+            const oldIndex = items.findIndex((item) => item.id === activeId);
+            const newIndex = items.findIndex((item) => item.id === overId);
+            if (oldIndex !== -1 && newIndex !== -1) {
+              return arrayMove(items, oldIndex, newIndex);
+            }
+            return items;
+          });
+        }
+      } else {
+        // Dragged out of planner - remove preview
+        if (isActiveInPlanner) {
+          setPlannedExercises((items) => items.filter((item) => item.id !== activeId));
+        }
+      }
+    }
+    // Case 2: Reordering within Planner
+    else if (isActiveInPlanner && isOverPlanner && activeId !== overId) {
+      setPlannedExercises((items) => {
+        const oldIndex = items.findIndex((item) => item.id === activeId);
+        const newIndex = items.findIndex((item) => item.id === overId);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
+
   const handleDragEnd = (event) => {
     const { active, over } = event;
     setActiveId(null);
     setActiveItem(null);
 
-    if (!over) return;
+    if (active.data.current?.type === 'menu-item') {
+      const isOverPlanner = over && (over.id === 'planner-droppable' || plannedExercises.some(e => e.id === over.id));
 
-    // Dragging from Menu to Planner
-    const isOverPlanner = over.id === 'planner-droppable' || plannedExercises.some(e => e.id === over.id);
-
-    if (active.data.current?.type === 'menu-item' && isOverPlanner) {
-      const newPlannerItem = {
-        id: `planned-${Date.now()}`,
-        name: active.data.current.name,
-        originalId: active.data.current.id,
-      };
-
-      if (over.id === 'planner-droppable') {
-        // Dropped on the container (empty space or end)
-        setPlannedExercises([...plannedExercises, newPlannerItem]);
+      if (isOverPlanner) {
+        // Finalize the drop: rename ID
+        setPlannedExercises((items) => items.map(item => {
+          if (item.id === active.id) {
+            return { ...item, id: `planned-${Date.now()}-${Math.floor(Math.random() * 1000)}` };
+          }
+          return item;
+        }));
       } else {
-        // Dropped on a specific item - insert before it
-        const overIndex = plannedExercises.findIndex(e => e.id === over.id);
-        const newItems = [...plannedExercises];
-        newItems.splice(overIndex, 0, newPlannerItem);
-        setPlannedExercises(newItems);
+        // Dropped outside: remove preview
+        setPlannedExercises((items) => items.filter((item) => item.id !== active.id));
       }
-      return;
     }
+  };
 
-    // Reordering within Planner
-    if (active.id !== over.id) {
-      setPlannedExercises((items) => {
-        const oldIndex = items.findIndex((item) => item.id === active.id);
-        const newIndex = items.findIndex((item) => item.id === over.id);
-
-        if (oldIndex !== -1 && newIndex !== -1) {
-          return arrayMove(items, oldIndex, newIndex);
-        }
-        return items;
-      });
+  const handleDragCancel = (event) => {
+    setActiveId(null);
+    setActiveItem(null);
+    const { active } = event;
+    if (active.data.current?.type === 'menu-item') {
+      setPlannedExercises((items) => items.filter((item) => item.id !== active.id));
     }
   };
 
@@ -110,7 +154,9 @@ function App() {
       sensors={sensors}
       collisionDetection={closestCenter}
       onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
+      onDragCancel={handleDragCancel}
     >
       <div className="flex h-screen bg-beige-50 font-sans text-gray-900">
         <ExerciseMenu exercises={exercises} onAddExercise={handleAddExercise} />
