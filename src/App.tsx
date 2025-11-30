@@ -162,6 +162,10 @@ function App() {
     };
 
     const handleAddToPlan = (exercise: Exercise) => {
+        // In edit mode, don't allow adding to planner
+        if (isEditMode) {
+            return;
+        }
         const newItem: PlannedExercise = {
             id: `planned-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
             name: exercise.name,
