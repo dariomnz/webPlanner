@@ -107,6 +107,21 @@ function App() {
         ));
     };
 
+    const handleRenameExercise = (exerciseId: string, newName: string) => {
+        setExercises(exercises.map(ex =>
+            ex.id === exerciseId ? { ...ex, name: newName } : ex
+        ));
+    };
+
+    const handleRenameSection = (oldName: string, newName: string) => {
+        // Update section name in sections array
+        setSections(sections.map(s => s === oldName ? newName : s));
+        // Update section name in all exercises
+        setExercises(exercises.map(ex =>
+            ex.section === oldName ? { ...ex, section: newName } : ex
+        ));
+    };
+
     const confirmDeleteSection = () => {
         if (sectionToDelete) {
             setSections(sections.filter(s => s !== sectionToDelete));
@@ -123,8 +138,8 @@ function App() {
         const { active } = event;
         setActiveId(active.id as string);
 
-        // Hide menu on mobile when dragging starts
-        if (window.innerWidth < 768) {
+        // Hide menu on mobile when dragging starts (only in planning mode)
+        if (window.innerWidth < 768 && !isEditMode) {
             setIsMenuVisible(false);
         }
 
@@ -174,9 +189,9 @@ function App() {
         // Case 1: Dragging from Menu
         const data = active.data.current as DragData | undefined;
         if (data?.type === 'menu-item') {
-            // In edit mode, check if dragging over a section
-            if (isEditMode && typeof overId === 'string' && overId.startsWith('section-')) {
-                // Don't do anything here, handle in onDragEnd
+            // In edit mode, only allow dragging to sections, not to planner
+            if (isEditMode) {
+                // Only handle section drops, ignore planner
                 return;
             }
 
@@ -238,8 +253,8 @@ function App() {
         setActiveId(null);
         setActiveItem(null);
 
-        // Show menu again on mobile when dragging ends
-        if (window.innerWidth < 768 && active.data.current?.type === 'menu-item') {
+        // Show menu again on mobile when dragging ends (only in planning mode)
+        if (window.innerWidth < 768 && active.data.current?.type === 'menu-item' && !isEditMode) {
             setIsMenuVisible(true);
         }
 
@@ -252,6 +267,11 @@ function App() {
                 if (exerciseId) {
                     handleMoveExerciseToSection(exerciseId, newSection);
                 }
+                return;
+            }
+
+            // In edit mode, don't allow adding to planner
+            if (isEditMode) {
                 return;
             }
 
@@ -278,8 +298,8 @@ function App() {
         setActiveId(null);
         setActiveItem(null);
 
-        // Show menu again on mobile when dragging is cancelled
-        if (window.innerWidth < 768 && active.data.current?.type === 'menu-item') {
+        // Show menu again on mobile when dragging is cancelled (only in planning mode)
+        if (window.innerWidth < 768 && active.data.current?.type === 'menu-item' && !isEditMode) {
             setIsMenuVisible(true);
         }
 
@@ -318,6 +338,8 @@ function App() {
                     onDeleteExercise={handleDeleteExerciseFromMenu}
                     onDeleteSection={handleDeleteSection}
                     onMoveExerciseToSection={handleMoveExerciseToSection}
+                    onRenameExercise={handleRenameExercise}
+                    onRenameSection={handleRenameSection}
                     isEditMode={isEditMode}
                     onEditModeChange={setIsEditMode}
                     isVisible={isMenuVisible}

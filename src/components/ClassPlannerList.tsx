@@ -10,16 +10,11 @@ interface ClassPlannerListProps {
 }
 
 export default function ClassPlannerList({ plannedExercises, onRemoveExercise }: ClassPlannerListProps) {
-    const { setNodeRef, isOver } = useDroppable({
+    const { setNodeRef } = useDroppable({
         id: 'planner-droppable',
     });
-    const style = {
-        opacity: isOver ? 0.5 : 1,
-    };
-
     return (
         <div
-            style={style}
             ref={setNodeRef}
             className="min-h-[500px] bg-white/50 rounded-3xl p-6 border-2 border-dashed border-pink-300 hover:border-pink-400 transition-colors shadow-sm"
         >

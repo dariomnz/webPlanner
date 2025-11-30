@@ -7,15 +7,43 @@ interface DraggableExerciseProps {
     exercise: Exercise;
     onAdd: (exercise: Exercise) => void;
     onDelete: (id: string) => void;
+    onRename: (id: string, newName: string) => void;
     isEditMode: boolean;
 }
 
-export function DraggableExercise({ exercise, onAdd, onDelete, isEditMode }: DraggableExerciseProps) {
+export function DraggableExercise({ exercise, onAdd, onDelete, onRename, isEditMode }: DraggableExerciseProps) {
     const { id, name, section } = exercise;
+    const [isRenaming, setIsRenaming] = useState(false);
+    const [newName, setNewName] = useState(name);
     const { attributes, listeners, setNodeRef } = useDraggable({
         id: `menu-${id}`,
         data: { type: 'menu-item', name, section, id },
+        disabled: isRenaming, // Disable dragging while renaming
     });
+
+    const handleDoubleClick = (e: React.MouseEvent) => {
+        if (isEditMode) {
+            e.stopPropagation();
+            setIsRenaming(true);
+        }
+    };
+
+    const handleRenameSubmit = () => {
+        if (newName.trim() && newName !== name) {
+            onRename(id, newName.trim());
+        }
+        setIsRenaming(false);
+        setNewName(name);
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            handleRenameSubmit();
+        } else if (e.key === 'Escape') {
+            setIsRenaming(false);
+            setNewName(name);
+        }
+    };
 
     return (
         <div
@@ -24,9 +52,23 @@ export function DraggableExercise({ exercise, onAdd, onDelete, isEditMode }: Dra
             {...attributes}
             onClick={() => onAdd(exercise)}
             className="flex items-center p-2 mb-2 bg-white rounded-md shadow-sm border border-pink-100 cursor-grab active:cursor-grabbing hover:border-pink-300 hover:shadow-md transition-all text-sm group"
+            onDoubleClick={handleDoubleClick}
         >
             <GripVertical className="w-4 h-4 text-pink-300 mr-2 flex-shrink-0" />
-            <span className="text-gray-700 font-medium truncate flex-1">{name}</span>
+            {isRenaming ? (
+                <input
+                    type="text"
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    onBlur={handleRenameSubmit}
+                    onKeyDown={handleKeyDown}
+                    className="flex-1 px-1 py-0.5 text-sm border border-pink-300 rounded focus:outline-none focus:ring-1 focus:ring-pink-400"
+                    autoFocus
+                    onClick={(e) => e.stopPropagation()}
+                />
+            ) : (
+                <span className="text-gray-700 font-medium truncate flex-1">{name}</span>
+            )}
             {isEditMode && (
                 <button
                     onClick={(e) => {
@@ -50,13 +92,17 @@ interface SectionProps {
     onAddToPlan: (exercise: Exercise) => void;
     onDeleteExercise: (id: string) => void;
     onDeleteSection?: (section: string) => void;
+    onRenameSection?: (oldName: string, newName: string) => void;
+    onRenameExercise: (id: string, newName: string) => void;
     isEditMode: boolean;
 }
 
-function Section({ title, exercises, onAddExercise, onAddToPlan, onDeleteExercise, onDeleteSection, isEditMode }: SectionProps) {
+function Section({ title, exercises, onAddExercise, onAddToPlan, onDeleteExercise, onDeleteSection, onRenameSection, onRenameExercise, isEditMode }: SectionProps) {
     const [isOpen, setIsOpen] = useState(true);
     const [newExercise, setNewExercise] = useState('');
     const [isAdding, setIsAdding] = useState(false);
+    const [isRenamingSection, setIsRenamingSection] = useState(false);
+    const [newSectionName, setNewSectionName] = useState(title);
 
     // Make section droppable in edit mode
     const { setNodeRef, isOver } = useDroppable({
@@ -73,16 +119,54 @@ function Section({ title, exercises, onAddExercise, onAddToPlan, onDeleteExercis
         }
     };
 
+    const handleSectionDoubleClick = (e: React.MouseEvent) => {
+        if (isEditMode && onRenameSection) {
+            e.stopPropagation();
+            setIsRenamingSection(true);
+        }
+    };
+
+    const handleSectionRenameSubmit = () => {
+        if (newSectionName.trim() && newSectionName !== title && onRenameSection) {
+            onRenameSection(title, newSectionName.trim());
+        }
+        setIsRenamingSection(false);
+        setNewSectionName(title);
+    };
+
+    const handleSectionKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            handleSectionRenameSubmit();
+        } else if (e.key === 'Escape') {
+            setIsRenamingSection(false);
+            setNewSectionName(title);
+        }
+    };
+
     return (
         <div className="mb-4" ref={setNodeRef}>
             <div
                 className={`flex items-center justify-between mb-2 cursor-pointer group transition-colors ${isOver && isEditMode ? 'bg-pink-50 rounded-lg p-2' : ''
                     }`}
                 onClick={() => setIsOpen(!isOpen)}
+                onDoubleClick={handleSectionDoubleClick}
             >
                 <div className="flex items-center text-pink-900 font-semibold">
                     {isOpen ? <ChevronDown className="w-4 h-4 mr-1" /> : <ChevronRight className="w-4 h-4 mr-1" />}
-                    {title}
+                    {isRenamingSection ? (
+                        <input
+                            type="text"
+                            value={newSectionName}
+                            onChange={(e) => setNewSectionName(e.target.value)}
+                            onBlur={handleSectionRenameSubmit}
+                            onKeyDown={handleSectionKeyDown}
+                            className="px-2 py-0.5 text-sm border border-pink-300 rounded focus:outline-none focus:ring-1 focus:ring-pink-400"
+                            autoFocus
+                            onClick={(e) => e.stopPropagation()}
+                        />
+                    ) : (
+                        <span>{title}</span>
+                    )}
                     <span className="ml-2 text-xs text-pink-400 font-normal bg-pink-50 px-2 py-0.5 rounded-full">
                         {exercises.length}
                     </span>
@@ -143,6 +227,7 @@ function Section({ title, exercises, onAddExercise, onAddToPlan, onDeleteExercis
                             exercise={ex}
                             onAdd={onAddToPlan}
                             onDelete={onDeleteExercise}
+                            onRename={onRenameExercise}
                             isEditMode={isEditMode}
                         />
                     ))}
@@ -164,6 +249,8 @@ interface ExerciseMenuProps {
     onDeleteExercise: (id: string) => void;
     onDeleteSection: (section: string) => void;
     onMoveExerciseToSection: (exerciseId: string, newSection: string) => void;
+    onRenameExercise: (exerciseId: string, newName: string) => void;
+    onRenameSection: (oldName: string, newName: string) => void;
     isEditMode: boolean;
     onEditModeChange: (isEditMode: boolean) => void;
     isVisible: boolean;
@@ -178,6 +265,8 @@ export default function ExerciseMenu({
     onDeleteExercise,
     onDeleteSection,
     onMoveExerciseToSection,
+    onRenameExercise,
+    onRenameSection,
     isEditMode,
     onEditModeChange,
     isVisible
@@ -265,6 +354,8 @@ export default function ExerciseMenu({
                         onAddToPlan={onAddToPlan}
                         onDeleteExercise={onDeleteExercise}
                         onDeleteSection={onDeleteSection}
+                        onRenameSection={onRenameSection}
+                        onRenameExercise={onRenameExercise}
                         isEditMode={isEditMode}
                     />
                 ))}
@@ -277,6 +368,7 @@ export default function ExerciseMenu({
                         onAddExercise={onAddExercise}
                         onAddToPlan={onAddToPlan}
                         onDeleteExercise={onDeleteExercise}
+                        onRenameExercise={onRenameExercise}
                         isEditMode={isEditMode}
                     />
                 )}
