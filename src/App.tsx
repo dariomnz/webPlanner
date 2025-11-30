@@ -20,6 +20,7 @@ import {
 } from '@dnd-kit/sortable';
 import ExerciseMenu from './components/ExerciseMenu.tsx';
 import ClassPlanner from './components/ClassPlanner.tsx';
+import ConfirmationModal from './components/ConfirmationModal.tsx';
 import { Exercise, PlannedExercise, DragData } from './types';
 import { X, Menu } from 'lucide-react';
 
@@ -41,7 +42,8 @@ function App() {
     const [plannedExercises, setPlannedExercises] = useLocalStorage<PlannedExercise[]>('planned-exercises', []);
     const [activeId, setActiveId] = useState<string | null>(null);
     const [activeItem, setActiveItem] = useState<ActiveItem | null>(null);
-    const [isMenuVisible, setIsMenuVisible] = useState<boolean>(true);
+    const [isMenuVisible, setIsMenuVisible] = useState<boolean>(false);
+    const [isClearModalOpen, setIsClearModalOpen] = useState<boolean>(false);
 
     const sensors = useSensors(
         useSensor(MouseSensor, {
@@ -240,6 +242,15 @@ function App() {
         }
     };
 
+    const handleClearAll = () => {
+        setIsClearModalOpen(true);
+    };
+
+    const confirmClearAll = () => {
+        setPlannedExercises([]);
+        setIsClearModalOpen(false);
+    };
+
     return (
         <DndContext
             sensors={sensors}
@@ -261,6 +272,7 @@ function App() {
                 <ClassPlanner
                     plannedExercises={plannedExercises}
                     onRemoveExercise={handleRemoveExercise}
+                    onClearAll={handleClearAll}
                 />
 
                 {/* Mobile menu toggle button */}
@@ -283,6 +295,14 @@ function App() {
                         </div>
                     ) : null}
                 </DragOverlay>
+
+                <ConfirmationModal
+                    isOpen={isClearModalOpen}
+                    onClose={() => setIsClearModalOpen(false)}
+                    onConfirm={confirmClearAll}
+                    title="¿Borrar toda la clase?"
+                    message="¿Estás seguro de que quieres eliminar todos los ejercicios de la planificación? Esta acción no se puede deshacer y perderás el progreso actual."
+                />
             </div>
         </DndContext>
     );
