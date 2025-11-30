@@ -29,7 +29,11 @@ function App() {
   const [activeItem, setActiveItem] = useState(null);
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -61,6 +65,14 @@ function App() {
     }
   };
 
+  const handleAddToPlan = (exercise) => {
+    const newItem = {
+      id: `planned-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      name: exercise.name,
+    };
+    setPlannedExercises([...plannedExercises, newItem]);
+  };
+
   const handleDragOver = (event) => {
     const { active, over } = event;
     if (!over) return;
@@ -68,18 +80,19 @@ function App() {
     const activeId = active.id;
     const overId = over.id;
 
-    // Find if active item is already in the list (preview)
-    const isActiveInPlanner = plannedExercises.some(ex => ex.id === activeId);
-    const isOverPlanner = over.id === 'planner-droppable' || plannedExercises.some(ex => ex.id === overId);
-
     // Case 1: Dragging from Menu
     if (active.data.current?.type === 'menu-item') {
+      const previewId = `${activeId}-preview`;
+      const isActiveInPlanner = plannedExercises.some(ex => ex.id === previewId);
+      const isOverPlanner = over.id === 'planner-droppable' || plannedExercises.some(ex => ex.id === overId);
+
       if (isOverPlanner) {
         if (!isActiveInPlanner) {
           // Insert preview
           const newItem = {
-            id: activeId,
+            id: previewId,
             name: active.data.current.name,
+            isPreview: true, // Mark as preview
           };
 
           setPlannedExercises((items) => {
@@ -89,10 +102,10 @@ function App() {
             newItems.splice(newIndex, 0, newItem);
             return newItems;
           });
-        } else if (activeId !== overId) {
+        } else if (previewId !== overId) {
           // Reorder preview item
           setPlannedExercises((items) => {
-            const oldIndex = items.findIndex((item) => item.id === activeId);
+            const oldIndex = items.findIndex((item) => item.id === previewId);
             const newIndex = items.findIndex((item) => item.id === overId);
             if (oldIndex !== -1 && newIndex !== -1) {
               return arrayMove(items, oldIndex, newIndex);
@@ -103,17 +116,22 @@ function App() {
       } else {
         // Dragged out of planner - remove preview
         if (isActiveInPlanner) {
-          setPlannedExercises((items) => items.filter((item) => item.id !== activeId));
+          setPlannedExercises((items) => items.filter((item) => item.id !== previewId));
         }
       }
     }
     // Case 2: Reordering within Planner
-    else if (isActiveInPlanner && isOverPlanner && activeId !== overId) {
-      setPlannedExercises((items) => {
-        const oldIndex = items.findIndex((item) => item.id === activeId);
-        const newIndex = items.findIndex((item) => item.id === overId);
-        return arrayMove(items, oldIndex, newIndex);
-      });
+    else {
+      const isActiveInPlanner = plannedExercises.some(ex => ex.id === activeId);
+      const isOverPlanner = over.id === 'planner-droppable' || plannedExercises.some(ex => ex.id === overId);
+
+      if (isActiveInPlanner && isOverPlanner && activeId !== overId) {
+        setPlannedExercises((items) => {
+          const oldIndex = items.findIndex((item) => item.id === activeId);
+          const newIndex = items.findIndex((item) => item.id === overId);
+          return arrayMove(items, oldIndex, newIndex);
+        });
+      }
     }
   };
 
@@ -123,19 +141,21 @@ function App() {
     setActiveItem(null);
 
     if (active.data.current?.type === 'menu-item') {
+      const previewId = `${active.id}-preview`;
       const isOverPlanner = over && (over.id === 'planner-droppable' || plannedExercises.some(e => e.id === over.id));
 
       if (isOverPlanner) {
-        // Finalize the drop: rename ID
+        // Finalize the drop: rename ID and remove isPreview flag
         setPlannedExercises((items) => items.map(item => {
-          if (item.id === active.id) {
-            return { ...item, id: `planned-${Date.now()}-${Math.floor(Math.random() * 1000)}` };
+          if (item.id === previewId) {
+            const { isPreview, ...rest } = item;
+            return { ...rest, id: `planned-${Date.now()}-${Math.floor(Math.random() * 1000)}` };
           }
           return item;
         }));
       } else {
         // Dropped outside: remove preview
-        setPlannedExercises((items) => items.filter((item) => item.id !== active.id));
+        setPlannedExercises((items) => items.filter((item) => item.id !== previewId));
       }
     }
   };
@@ -145,7 +165,8 @@ function App() {
     setActiveItem(null);
     const { active } = event;
     if (active.data.current?.type === 'menu-item') {
-      setPlannedExercises((items) => items.filter((item) => item.id !== active.id));
+      const previewId = `${active.id}-preview`;
+      setPlannedExercises((items) => items.filter((item) => item.id !== previewId));
     }
   };
 
@@ -159,7 +180,11 @@ function App() {
       onDragCancel={handleDragCancel}
     >
       <div className="flex h-screen bg-beige-50 font-sans text-gray-900">
-        <ExerciseMenu exercises={exercises} onAddExercise={handleAddExercise} />
+        <ExerciseMenu
+          exercises={exercises}
+          onAddExercise={handleAddExercise}
+          onAddToPlan={handleAddToPlan}
+        />
         <ClassPlanner
           plannedExercises={plannedExercises}
           onRemoveExercise={handleRemoveExercise}

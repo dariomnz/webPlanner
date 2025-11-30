@@ -3,7 +3,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, X } from 'lucide-react';
 
-export default function SortablePlannerItem({ id, name, onRemove }) {
+export default function SortablePlannerItem({ id, name, onRemove, isPreview }) {
     const {
         attributes,
         listeners,
@@ -17,7 +17,7 @@ export default function SortablePlannerItem({ id, name, onRemove }) {
         transform: CSS.Transform.toString(transform),
         transition,
         zIndex: isDragging ? 10 : 1,
-        opacity: isDragging ? 0.5 : 1,
+        opacity: isDragging || isPreview ? 0.5 : 1,
     };
 
     return (

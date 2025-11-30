@@ -35,6 +35,7 @@ export default function ClassPlanner({ plannedExercises, onRemoveExercise }) {
                                     key={ex.id}
                                     id={ex.id}
                                     name={ex.name}
+                                    isPreview={ex.isPreview}
                                     onRemove={onRemoveExercise}
                                 />
                             ))

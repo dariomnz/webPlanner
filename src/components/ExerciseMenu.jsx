@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { Plus, GripVertical } from 'lucide-react';
 
-export function DraggableExercise({ id, name }) {
+export function DraggableExercise({ id, name, onAdd }) {
     const { attributes, listeners, setNodeRef, transform } = useDraggable({
         id: `menu-${id}`,
         data: { type: 'menu-item', name, id },
@@ -18,6 +18,7 @@ export function DraggableExercise({ id, name }) {
             style={style}
             {...listeners}
             {...attributes}
+            onClick={() => onAdd({ id, name })}
             className="flex items-center p-3 mb-2 bg-white rounded-lg shadow-sm border border-pink-200 cursor-grab active:cursor-grabbing hover:border-pink-400 hover:shadow-md transition-all"
         >
             <GripVertical className="w-4 h-4 text-pink-400 mr-2" />
@@ -26,7 +27,7 @@ export function DraggableExercise({ id, name }) {
     );
 }
 
-export default function ExerciseMenu({ exercises, onAddExercise }) {
+export default function ExerciseMenu({ exercises, onAddExercise, onAddToPlan }) {
     const [newExercise, setNewExercise] = useState('');
 
     const handleSubmit = (e) => {
@@ -60,7 +61,12 @@ export default function ExerciseMenu({ exercises, onAddExercise }) {
 
             <div className="flex-1 overflow-y-auto p-4">
                 {exercises.map((ex) => (
-                    <DraggableExercise key={ex.id} id={ex.id} name={ex.name} />
+                    <DraggableExercise
+                        key={ex.id}
+                        id={ex.id}
+                        name={ex.name}
+                        onAdd={onAddToPlan}
+                    />
                 ))}
             </div>
         </div>
