@@ -249,9 +249,9 @@ function App() {
                     aria-label={isMenuVisible ? "Ocultar menú" : "Mostrar menú"}
                 >
                     {isMenuVisible ? (
-                        <Menu></Menu>
-                    ) : (
                         <X></X>
+                    ) : (
+                        <Menu></Menu>
                     )}
                 </button>
 
