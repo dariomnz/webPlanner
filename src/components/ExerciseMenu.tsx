@@ -33,9 +33,10 @@ interface ExerciseMenuProps {
     exercises: Exercise[];
     onAddExercise: (name: string) => void;
     onAddToPlan: (exercise: Exercise) => void;
+    isVisible: boolean;
 }
 
-export default function ExerciseMenu({ exercises, onAddExercise, onAddToPlan }: ExerciseMenuProps) {
+export default function ExerciseMenu({ exercises, onAddExercise, onAddToPlan, isVisible }: ExerciseMenuProps) {
     const [newExercise, setNewExercise] = useState('');
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -47,7 +48,12 @@ export default function ExerciseMenu({ exercises, onAddExercise, onAddToPlan }: 
     };
 
     return (
-        <div className="w-80 bg-white border-r border-pink-200 h-screen flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-10">
+        <div className={`
+            w-80 bg-white border-r border-pink-200 h-screen flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-10
+            md:relative md:translate-x-0
+            fixed transition-transform duration-300 ease-in-out
+            ${isVisible ? 'translate-x-0' : '-translate-x-full'}
+        `}>
             <div className="p-6 border-b border-pink-100 bg-pink-50/30">
                 <h2 className="text-2xl font-serif text-pink-950 mb-4 font-semibold">Ejercicios</h2>
                 <form onSubmit={handleSubmit} className="flex gap-2">

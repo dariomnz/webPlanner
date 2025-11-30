@@ -20,6 +20,7 @@ import {
 import ExerciseMenu from './components/ExerciseMenu.tsx';
 import ClassPlanner from './components/ClassPlanner.tsx';
 import { Exercise, PlannedExercise, DragData } from './types';
+import { X, Menu } from 'lucide-react';
 
 interface ActiveItem extends PlannedExercise {
     source?: 'menu' | 'planner';
@@ -37,6 +38,7 @@ function App() {
     const [plannedExercises, setPlannedExercises] = useState<PlannedExercise[]>([]);
     const [activeId, setActiveId] = useState<string | null>(null);
     const [activeItem, setActiveItem] = useState<ActiveItem | null>(null);
+    const [isMenuVisible, setIsMenuVisible] = useState<boolean>(true);
 
     const sensors = useSensors(
         useSensor(MouseSensor, {
@@ -69,9 +71,18 @@ function App() {
         setPlannedExercises(plannedExercises.filter((ex) => ex.id !== id));
     };
 
+    const toggleMenu = () => {
+        setIsMenuVisible(!isMenuVisible);
+    };
+
     const handleDragStart = (event: DragStartEvent) => {
         const { active } = event;
         setActiveId(active.id as string);
+
+        // Hide menu on mobile when dragging starts
+        if (window.innerWidth < 768) {
+            setIsMenuVisible(false);
+        }
 
         // Determine if we are dragging from menu or planner
         const data = active.data.current as DragData | undefined;
@@ -168,6 +179,11 @@ function App() {
         setActiveId(null);
         setActiveItem(null);
 
+        // Show menu again on mobile when dragging ends
+        if (window.innerWidth < 768 && active.data.current?.type === 'menu-item') {
+            setIsMenuVisible(true);
+        }
+
         const data = active.data.current as DragData | undefined;
         if (data?.type === 'menu-item') {
             const previewId = `${active.id}-preview`;
@@ -189,9 +205,15 @@ function App() {
     };
 
     const handleDragCancel = (event: DragCancelEvent) => {
+        const { active } = event;
         setActiveId(null);
         setActiveItem(null);
-        const { active } = event;
+
+        // Show menu again on mobile when dragging is cancelled
+        if (window.innerWidth < 768 && active.data.current?.type === 'menu-item') {
+            setIsMenuVisible(true);
+        }
+
         const data = active.data.current as DragData | undefined;
         if (data?.type === 'menu-item') {
             const previewId = `${active.id}-preview`;
@@ -213,11 +235,25 @@ function App() {
                     exercises={exercises}
                     onAddExercise={handleAddExercise}
                     onAddToPlan={handleAddToPlan}
+                    isVisible={isMenuVisible}
                 />
                 <ClassPlanner
                     plannedExercises={plannedExercises}
                     onRemoveExercise={handleRemoveExercise}
                 />
+
+                {/* Mobile menu toggle button */}
+                <button
+                    onClick={toggleMenu}
+                    className="md:hidden fixed bottom-6 left-6 z-50 p-4 bg-pink-500 text-white rounded-full shadow-lg hover:bg-pink-600 transition-all active:scale-95"
+                    aria-label={isMenuVisible ? "Ocultar menú" : "Mostrar menú"}
+                >
+                    {isMenuVisible ? (
+                        <Menu></Menu>
+                    ) : (
+                        <X></X>
+                    )}
+                </button>
 
                 <DragOverlay>
                     {activeId && activeItem ? (
