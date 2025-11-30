@@ -10,19 +10,14 @@ interface DraggableExerciseProps {
 }
 
 export function DraggableExercise({ id, name, onAdd }: DraggableExerciseProps) {
-    const { attributes, listeners, setNodeRef, transform } = useDraggable({
+    const { attributes, listeners, setNodeRef } = useDraggable({
         id: `menu-${id}`,
         data: { type: 'menu-item', name, id },
     });
 
-    const style = transform ? {
-        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-    } : undefined;
-
     return (
         <div
             ref={setNodeRef}
-            style={style}
             {...listeners}
             {...attributes}
             onClick={() => onAdd({ id, name })}

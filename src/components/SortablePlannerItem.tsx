@@ -21,8 +21,8 @@ export default function SortablePlannerItem({ id, name, onRemove, isPreview }: S
     } = useSortable({ id });
 
     const style = {
-        transform: CSS.Transform.toString(transform),
-        transition,
+        transform: isDragging ? undefined : CSS.Translate.toString(transform),
+        transition: isDragging ? undefined : transition,
         zIndex: isDragging ? 10 : 1,
         opacity: isDragging || isPreview ? 0.5 : 1,
     };
@@ -41,7 +41,7 @@ export default function SortablePlannerItem({ id, name, onRemove, isPreview }: S
             </div>
             <button
                 onClick={() => onRemove(id)}
-                className="p-2 text-gray-400 hover:text-pink-500 hover:bg-pink-50 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                className="p-2 text-gray-400 hover:text-pink-500 hover:bg-pink-50 rounded-full transition-colors group-hover:opacity-100"
             >
                 <X className="w-5 h-5" />
             </button>

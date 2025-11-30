@@ -2,7 +2,7 @@ import { useState } from 'react';
 import {
     DndContext,
     DragOverlay,
-    closestCenter,
+    rectIntersection,
     KeyboardSensor,
     PointerSensor,
     useSensor,
@@ -11,6 +11,7 @@ import {
     DragOverEvent,
     DragEndEvent,
     DragCancelEvent,
+    MouseSensor,
 } from '@dnd-kit/core';
 import {
     arrayMove,
@@ -38,6 +39,11 @@ function App() {
     const [activeItem, setActiveItem] = useState<ActiveItem | null>(null);
 
     const sensors = useSensors(
+        useSensor(MouseSensor, {
+            activationConstraint: {
+                distance: 8,
+            },
+        }),
         useSensor(PointerSensor, {
             activationConstraint: {
                 distance: 8,
@@ -85,12 +91,9 @@ function App() {
 
     const handleDragOver = (event: DragOverEvent) => {
         const { active, over } = event;
-        console.log(active, over);
-
-        if (!over) return;
 
         // If dropped outside any droppable area, remove the preview if it exists
-        if (over.id !== 'planner-droppable') {
+        if (!over) {
             const data = active.data.current as DragData | undefined;
             if (data?.type === 'menu-item') {
                 const previewId = `${active.id}-preview`;
@@ -108,7 +111,6 @@ function App() {
             const previewId = `${activeId}-preview`;
             const isActiveInPlanner = plannedExercises.some(ex => ex.id === previewId);
             const isOverPlanner = over.id === 'planner-droppable' || plannedExercises.some(ex => ex.id === overId);
-
             if (isOverPlanner) {
                 if (!isActiveInPlanner) {
                     // Insert preview
@@ -167,7 +169,6 @@ function App() {
         if (data?.type === 'menu-item') {
             const previewId = `${active.id}-preview`;
             const isOverPlanner = over && (over.id === 'planner-droppable' || plannedExercises.some(e => e.id === over.id));
-
             if (isOverPlanner) {
                 // Finalize the drop: rename ID and remove isPreview flag
                 setPlannedExercises((items) => items.map(item => {
@@ -198,7 +199,7 @@ function App() {
     return (
         <DndContext
             sensors={sensors}
-            collisionDetection={closestCenter}
+            collisionDetection={rectIntersection}
             onDragStart={handleDragStart}
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
