@@ -1,8 +1,15 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { Plus, GripVertical } from 'lucide-react';
+import { Exercise } from '../types';
 
-export function DraggableExercise({ id, name, onAdd }) {
+interface DraggableExerciseProps {
+    id: string;
+    name: string;
+    onAdd: (exercise: Exercise) => void;
+}
+
+export function DraggableExercise({ id, name, onAdd }: DraggableExerciseProps) {
     const { attributes, listeners, setNodeRef, transform } = useDraggable({
         id: `menu-${id}`,
         data: { type: 'menu-item', name, id },
@@ -27,10 +34,16 @@ export function DraggableExercise({ id, name, onAdd }) {
     );
 }
 
-export default function ExerciseMenu({ exercises, onAddExercise, onAddToPlan }) {
+interface ExerciseMenuProps {
+    exercises: Exercise[];
+    onAddExercise: (name: string) => void;
+    onAddToPlan: (exercise: Exercise) => void;
+}
+
+export default function ExerciseMenu({ exercises, onAddExercise, onAddToPlan }: ExerciseMenuProps) {
     const [newExercise, setNewExercise] = useState('');
 
-    const handleSubmit = (e) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (newExercise.trim()) {
             onAddExercise(newExercise.trim());

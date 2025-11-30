@@ -1,9 +1,16 @@
-import React from 'react';
+
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, X } from 'lucide-react';
 
-export default function SortablePlannerItem({ id, name, onRemove, isPreview }) {
+interface SortablePlannerItemProps {
+    id: string;
+    name: string;
+    onRemove: (id: string) => void;
+    isPreview?: boolean;
+}
+
+export default function SortablePlannerItem({ id, name, onRemove, isPreview }: SortablePlannerItemProps) {
     const {
         attributes,
         listeners,
