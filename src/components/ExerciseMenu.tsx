@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useDraggable } from '@dnd-kit/core';
+import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { Plus, GripVertical, ChevronDown, ChevronRight, FolderPlus, Trash2, Pencil, Calendar } from 'lucide-react';
 import { Exercise } from '../types';
 
@@ -58,6 +58,12 @@ function Section({ title, exercises, onAddExercise, onAddToPlan, onDeleteExercis
     const [newExercise, setNewExercise] = useState('');
     const [isAdding, setIsAdding] = useState(false);
 
+    // Make section droppable in edit mode
+    const { setNodeRef, isOver } = useDroppable({
+        id: `section-${title}`,
+        disabled: !isEditMode,
+    });
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (newExercise.trim()) {
@@ -68,9 +74,10 @@ function Section({ title, exercises, onAddExercise, onAddToPlan, onDeleteExercis
     };
 
     return (
-        <div className="mb-4">
+        <div className="mb-4" ref={setNodeRef}>
             <div
-                className="flex items-center justify-between mb-2 cursor-pointer group"
+                className={`flex items-center justify-between mb-2 cursor-pointer group transition-colors ${isOver && isEditMode ? 'bg-pink-50 rounded-lg p-2' : ''
+                    }`}
                 onClick={() => setIsOpen(!isOpen)}
             >
                 <div className="flex items-center text-pink-900 font-semibold">
@@ -156,6 +163,9 @@ interface ExerciseMenuProps {
     onAddToPlan: (exercise: Exercise) => void;
     onDeleteExercise: (id: string) => void;
     onDeleteSection: (section: string) => void;
+    onMoveExerciseToSection: (exerciseId: string, newSection: string) => void;
+    isEditMode: boolean;
+    onEditModeChange: (isEditMode: boolean) => void;
     isVisible: boolean;
 }
 
@@ -167,11 +177,13 @@ export default function ExerciseMenu({
     onAddToPlan,
     onDeleteExercise,
     onDeleteSection,
+    onMoveExerciseToSection,
+    isEditMode,
+    onEditModeChange,
     isVisible
 }: ExerciseMenuProps) {
     const [newSection, setNewSection] = useState('');
     const [isAddingSection, setIsAddingSection] = useState(false);
-    const [isEditMode, setIsEditMode] = useState(false);
 
     const handleAddSectionSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -194,14 +206,14 @@ export default function ExerciseMenu({
                     <h2 className="text-xl font-serif text-pink-950 font-semibold">Ejercicios</h2>
                     <div className="flex items-center gap-1 bg-white border border-pink-100 p-1 rounded-lg shadow-sm">
                         <button
-                            onClick={() => setIsEditMode(false)}
+                            onClick={() => onEditModeChange(false)}
                             className={`p-1.5 rounded-md transition-all ${!isEditMode ? 'bg-pink-100 text-pink-700 shadow-sm' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
                             title="Modo Planificación"
                         >
                             <Calendar size={16} />
                         </button>
                         <button
-                            onClick={() => setIsEditMode(true)}
+                            onClick={() => onEditModeChange(true)}
                             className={`p-1.5 rounded-md transition-all ${isEditMode ? 'bg-pink-100 text-pink-700 shadow-sm' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
                             title="Modo Edición"
                         >

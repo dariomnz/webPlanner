@@ -46,6 +46,7 @@ function App() {
     const [isClearModalOpen, setIsClearModalOpen] = useState<boolean>(false);
     const [exerciseToDelete, setExerciseToDelete] = useState<string | null>(null);
     const [sectionToDelete, setSectionToDelete] = useState<string | null>(null);
+    const [isEditMode, setIsEditMode] = useState<boolean>(false);
 
     const sensors = useSensors(
         useSensor(MouseSensor, {
@@ -98,6 +99,12 @@ function App() {
 
     const handleDeleteSection = (section: string) => {
         setSectionToDelete(section);
+    };
+
+    const handleMoveExerciseToSection = (exerciseId: string, newSection: string) => {
+        setExercises(exercises.map(ex =>
+            ex.id === exerciseId ? { ...ex, section: newSection } : ex
+        ));
     };
 
     const confirmDeleteSection = () => {
@@ -167,6 +174,12 @@ function App() {
         // Case 1: Dragging from Menu
         const data = active.data.current as DragData | undefined;
         if (data?.type === 'menu-item') {
+            // In edit mode, check if dragging over a section
+            if (isEditMode && typeof overId === 'string' && overId.startsWith('section-')) {
+                // Don't do anything here, handle in onDragEnd
+                return;
+            }
+
             const previewId = `${activeId}-preview`;
             const isActiveInPlanner = plannedExercises.some(ex => ex.id === previewId);
             const isOverPlanner = over.id === 'planner-droppable' || plannedExercises.some(ex => ex.id === overId);
@@ -232,6 +245,16 @@ function App() {
 
         const data = active.data.current as DragData | undefined;
         if (data?.type === 'menu-item') {
+            // Check if in edit mode and dropped on a section
+            if (isEditMode && over && typeof over.id === 'string' && over.id.startsWith('section-')) {
+                const newSection = over.id.replace('section-', '');
+                const exerciseId = data.id;
+                if (exerciseId) {
+                    handleMoveExerciseToSection(exerciseId, newSection);
+                }
+                return;
+            }
+
             const previewId = `${active.id}-preview`;
             const isOverPlanner = over && (over.id === 'planner-droppable' || plannedExercises.some(e => e.id === over.id));
             if (isOverPlanner) {
@@ -294,6 +317,9 @@ function App() {
                     onAddToPlan={handleAddToPlan}
                     onDeleteExercise={handleDeleteExerciseFromMenu}
                     onDeleteSection={handleDeleteSection}
+                    onMoveExerciseToSection={handleMoveExerciseToSection}
+                    isEditMode={isEditMode}
+                    onEditModeChange={setIsEditMode}
                     isVisible={isMenuVisible}
                 />
                 <ClassPlanner
