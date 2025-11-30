@@ -35,10 +35,8 @@ export default function ClassPlannerList({ plannedExercises, onRemoveExercise }:
                 ) : (
                     plannedExercises.map((ex) => (
                         <SortablePlannerItem
+                            exercise={ex}
                             key={ex.id}
-                            id={ex.id}
-                            name={ex.name}
-                            isPreview={ex.isPreview}
                             onRemove={onRemoveExercise}
                         />
                     ))

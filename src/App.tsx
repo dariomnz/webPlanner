@@ -28,12 +28,14 @@ interface ActiveItem extends PlannedExercise {
 
 function App() {
     const [exercises, setExercises] = useState<Exercise[]>([
-        { id: '1', name: 'The Hundred' },
-        { id: '2', name: 'Roll Up' },
-        { id: '3', name: 'Single Leg Circles' },
-        { id: '4', name: 'Rolling Like a Ball' },
-        { id: '5', name: 'Single Leg Stretch' },
+        { id: '1', name: 'The Hundred', section: 'Core' },
+        { id: '2', name: 'Roll Up', section: 'Core' },
+        { id: '3', name: 'Single Leg Circles', section: 'Legs' },
+        { id: '4', name: 'Rolling Like a Ball', section: 'Core' },
+        { id: '5', name: 'Single Leg Stretch', section: 'Legs' },
     ]);
+
+    const [sections, setSections] = useState<string[]>(['Core', 'Legs', 'Arms', 'Back']);
 
     const [plannedExercises, setPlannedExercises] = useState<PlannedExercise[]>([]);
     const [activeId, setActiveId] = useState<string | null>(null);
@@ -59,12 +61,19 @@ function App() {
         })
     );
 
-    const handleAddExercise = (name: string) => {
+    const handleAddExercise = (name: string, section: string) => {
         const newExercise: Exercise = {
             id: Date.now().toString(),
             name,
+            section,
         };
         setExercises([...exercises, newExercise]);
+    };
+
+    const handleAddSection = (section: string) => {
+        if (!sections.includes(section)) {
+            setSections([...sections, section]);
+        }
     };
 
     const handleRemoveExercise = (id: string) => {
@@ -87,7 +96,14 @@ function App() {
         // Determine if we are dragging from menu or planner
         const data = active.data.current as DragData | undefined;
         if (data?.type === 'menu-item') {
-            setActiveItem({ id: data.id!, name: data.name!, source: 'menu' });
+            // Find the original exercise to get the section
+            const originalExercise = exercises.find(e => e.id === data.id);
+            setActiveItem({
+                id: data.id!,
+                name: data.name!,
+                section: originalExercise?.section || 'Uncategorized',
+                source: 'menu'
+            });
         } else {
             // Find item in planner
             const item = plannedExercises.find(e => e.id === active.id);
@@ -99,6 +115,7 @@ function App() {
         const newItem: PlannedExercise = {
             id: `planned-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
             name: exercise.name,
+            section: exercise.section,
         };
         setPlannedExercises([...plannedExercises, newItem]);
     };
@@ -131,6 +148,7 @@ function App() {
                     const newItem: PlannedExercise = {
                         id: previewId,
                         name: data.name!,
+                        section: data.section!,
                         isPreview: true, // Mark as preview
                     };
 
@@ -233,7 +251,9 @@ function App() {
             <div className="flex h-screen bg-beige-50 font-sans text-gray-900">
                 <ExerciseMenu
                     exercises={exercises}
+                    sections={sections}
                     onAddExercise={handleAddExercise}
+                    onAddSection={handleAddSection}
                     onAddToPlan={handleAddToPlan}
                     isVisible={isMenuVisible}
                 />
