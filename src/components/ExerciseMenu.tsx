@@ -54,7 +54,7 @@ export default function ExerciseMenu({ exercises, onAddExercise, onAddToPlan, is
             fixed transition-transform duration-300 ease-in-out
             ${isVisible ? 'translate-x-0' : '-translate-x-full'}
         `}>
-            <div className="p-6 border-b border-pink-100 bg-pink-50/30">
+            <div className="p-4 md:p-6 border-b border-pink-100 bg-pink-50/30">
                 <h2 className="text-2xl font-serif text-pink-950 mb-4 font-semibold">Ejercicios</h2>
                 <form onSubmit={handleSubmit} className="flex gap-2">
                     <input
@@ -62,11 +62,11 @@ export default function ExerciseMenu({ exercises, onAddExercise, onAddToPlan, is
                         value={newExercise}
                         onChange={(e) => setNewExercise(e.target.value)}
                         placeholder="Nuevo ejercicio..."
-                        className="flex-1 px-3 py-2 rounded-md border border-beige-300 focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white"
+                        className="flex-1 min-w-0 px-3 py-2 rounded-md border border-beige-300 focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white"
                     />
                     <button
                         type="submit"
-                        className="p-2 bg-pink-500 text-white rounded-md hover:bg-pink-600 transition-colors"
+                        className="flex-shrink-0 p-2 bg-pink-500 text-white rounded-md hover:bg-pink-600 transition-colors"
                     >
                         <Plus className="w-5 h-5" />
                     </button>
