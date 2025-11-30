@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { useDraggable } from '@dnd-kit/core';
-import { Plus, GripVertical, ChevronDown, ChevronRight, FolderPlus } from 'lucide-react';
+import { Plus, GripVertical, ChevronDown, ChevronRight, FolderPlus, Trash2, Pencil, Calendar } from 'lucide-react';
 import { Exercise } from '../types';
 
 interface DraggableExerciseProps {
     exercise: Exercise;
     onAdd: (exercise: Exercise) => void;
+    onDelete: (id: string) => void;
+    isEditMode: boolean;
 }
 
-export function DraggableExercise({ exercise, onAdd }: DraggableExerciseProps) {
+export function DraggableExercise({ exercise, onAdd, onDelete, isEditMode }: DraggableExerciseProps) {
     const { id, name, section } = exercise;
     const { attributes, listeners, setNodeRef } = useDraggable({
         id: `menu-${id}`,
@@ -21,10 +23,22 @@ export function DraggableExercise({ exercise, onAdd }: DraggableExerciseProps) {
             {...listeners}
             {...attributes}
             onClick={() => onAdd(exercise)}
-            className="flex items-center p-2 mb-2 bg-white rounded-md shadow-sm border border-pink-100 cursor-grab active:cursor-grabbing hover:border-pink-300 hover:shadow-md transition-all text-sm"
+            className="flex items-center p-2 mb-2 bg-white rounded-md shadow-sm border border-pink-100 cursor-grab active:cursor-grabbing hover:border-pink-300 hover:shadow-md transition-all text-sm group"
         >
             <GripVertical className="w-4 h-4 text-pink-300 mr-2 flex-shrink-0" />
-            <span className="text-gray-700 font-medium truncate">{name}</span>
+            <span className="text-gray-700 font-medium truncate flex-1">{name}</span>
+            {isEditMode && (
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(id);
+                    }}
+                    className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded group-hover:opacity-100 transition-all"
+                    title="Eliminar ejercicio"
+                >
+                    <Trash2 className="w-3 h-3" />
+                </button>
+            )}
         </div>
     );
 }
@@ -34,9 +48,12 @@ interface SectionProps {
     exercises: Exercise[];
     onAddExercise: (name: string, section: string) => void;
     onAddToPlan: (exercise: Exercise) => void;
+    onDeleteExercise: (id: string) => void;
+    onDeleteSection?: (section: string) => void;
+    isEditMode: boolean;
 }
 
-function Section({ title, exercises, onAddExercise, onAddToPlan }: SectionProps) {
+function Section({ title, exercises, onAddExercise, onAddToPlan, onDeleteExercise, onDeleteSection, isEditMode }: SectionProps) {
     const [isOpen, setIsOpen] = useState(true);
     const [newExercise, setNewExercise] = useState('');
     const [isAdding, setIsAdding] = useState(false);
@@ -63,17 +80,33 @@ function Section({ title, exercises, onAddExercise, onAddToPlan }: SectionProps)
                         {exercises.length}
                     </span>
                 </div>
-                <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        setIsAdding(!isAdding);
-                        setIsOpen(true);
-                    }}
-                    className="p-1 text-pink-400 hover:text-pink-600 hover:bg-pink-50 rounded group-hover:opacity-100 transition-all"
-                    title="Añadir ejercicio"
-                >
-                    <Plus className="w-4 h-4" />
-                </button>
+                {isEditMode && (
+                    <div className="flex items-center">
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsAdding(!isAdding);
+                                setIsOpen(true);
+                            }}
+                            className="p-1 text-pink-400 hover:text-pink-600 hover:bg-pink-50 rounded group-hover:opacity-100 transition-all"
+                            title="Añadir ejercicio"
+                        >
+                            <Plus className="w-4 h-4" />
+                        </button>
+                        {onDeleteSection && (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onDeleteSection(title);
+                                }}
+                                className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded group-hover:opacity-100 transition-all ml-1"
+                                title="Eliminar sección"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </button>
+                        )}
+                    </div>
+                )}
             </div>
 
             {isOpen && (
@@ -102,6 +135,8 @@ function Section({ title, exercises, onAddExercise, onAddToPlan }: SectionProps)
                             key={ex.id}
                             exercise={ex}
                             onAdd={onAddToPlan}
+                            onDelete={onDeleteExercise}
+                            isEditMode={isEditMode}
                         />
                     ))}
                     {exercises.length === 0 && !isAdding && (
@@ -119,6 +154,8 @@ interface ExerciseMenuProps {
     onAddExercise: (name: string, section: string) => void;
     onAddSection: (section: string) => void;
     onAddToPlan: (exercise: Exercise) => void;
+    onDeleteExercise: (id: string) => void;
+    onDeleteSection: (section: string) => void;
     isVisible: boolean;
 }
 
@@ -128,10 +165,13 @@ export default function ExerciseMenu({
     onAddExercise,
     onAddSection,
     onAddToPlan,
+    onDeleteExercise,
+    onDeleteSection,
     isVisible
 }: ExerciseMenuProps) {
     const [newSection, setNewSection] = useState('');
     const [isAddingSection, setIsAddingSection] = useState(false);
+    const [isEditMode, setIsEditMode] = useState(false);
 
     const handleAddSectionSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -149,15 +189,36 @@ export default function ExerciseMenu({
             fixed transition-transform duration-300 ease-in-out
             ${isVisible ? 'translate-x-0' : '-translate-x-full'}
         `}>
-            <div className="p-4 border-b border-pink-100 bg-pink-50/30 flex justify-between items-center">
-                <h2 className="text-xl font-serif text-pink-950 font-semibold">Ejercicios</h2>
-                <button
-                    onClick={() => setIsAddingSection(!isAddingSection)}
-                    className="flex items-center gap-1 text-xs font-medium text-pink-600 hover:text-pink-800 bg-white px-2 py-1 rounded border border-pink-200 shadow-sm hover:shadow transition-all"
-                >
-                    <FolderPlus className="w-3 h-3" />
-                    Nueva Sección
-                </button>
+            <div className="p-4 border-b border-pink-100 bg-pink-50/30">
+                <div className="flex justify-between items-center mb-3">
+                    <h2 className="text-xl font-serif text-pink-950 font-semibold">Ejercicios</h2>
+                    <div className="flex items-center gap-1 bg-white border border-pink-100 p-1 rounded-lg shadow-sm">
+                        <button
+                            onClick={() => setIsEditMode(false)}
+                            className={`p-1.5 rounded-md transition-all ${!isEditMode ? 'bg-pink-100 text-pink-700 shadow-sm' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
+                            title="Modo Planificación"
+                        >
+                            <Calendar size={16} />
+                        </button>
+                        <button
+                            onClick={() => setIsEditMode(true)}
+                            className={`p-1.5 rounded-md transition-all ${isEditMode ? 'bg-pink-100 text-pink-700 shadow-sm' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
+                            title="Modo Edición"
+                        >
+                            <Pencil size={16} />
+                        </button>
+                    </div>
+                </div>
+
+                {isEditMode && (
+                    <button
+                        onClick={() => setIsAddingSection(!isAddingSection)}
+                        className="w-full flex items-center justify-center gap-2 text-xs font-medium text-pink-600 hover:text-pink-800 bg-white px-3 py-2 rounded-lg border border-pink-200 shadow-sm hover:shadow transition-all"
+                    >
+                        <FolderPlus className="w-3 h-3" />
+                        Nueva Sección
+                    </button>
+                )}
             </div>
 
             <div className="flex-1 overflow-y-auto p-4">
@@ -190,6 +251,9 @@ export default function ExerciseMenu({
                         exercises={exercises.filter(e => e.section === section)}
                         onAddExercise={onAddExercise}
                         onAddToPlan={onAddToPlan}
+                        onDeleteExercise={onDeleteExercise}
+                        onDeleteSection={onDeleteSection}
+                        isEditMode={isEditMode}
                     />
                 ))}
 
@@ -200,6 +264,8 @@ export default function ExerciseMenu({
                         exercises={exercises.filter(e => !sections.includes(e.section))}
                         onAddExercise={onAddExercise}
                         onAddToPlan={onAddToPlan}
+                        onDeleteExercise={onDeleteExercise}
+                        isEditMode={isEditMode}
                     />
                 )}
             </div>

@@ -1,7 +1,7 @@
 
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, X } from 'lucide-react';
+import { GripVertical, Trash2 } from 'lucide-react';
 import { PlannedExercise } from '../types';
 
 interface SortablePlannerItemProps {
@@ -44,7 +44,7 @@ export default function SortablePlannerItem({ exercise, onRemove }: SortablePlan
                 onClick={() => onRemove(id)}
                 className="p-2 text-gray-400 hover:text-pink-500 hover:bg-pink-50 rounded-full transition-colors group-hover:opacity-100"
             >
-                <X className="w-5 h-5" />
+                <Trash2 className="w-5 h-5" />
             </button>
         </div>
     );

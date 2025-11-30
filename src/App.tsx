@@ -44,6 +44,8 @@ function App() {
     const [activeItem, setActiveItem] = useState<ActiveItem | null>(null);
     const [isMenuVisible, setIsMenuVisible] = useState<boolean>(false);
     const [isClearModalOpen, setIsClearModalOpen] = useState<boolean>(false);
+    const [exerciseToDelete, setExerciseToDelete] = useState<string | null>(null);
+    const [sectionToDelete, setSectionToDelete] = useState<string | null>(null);
 
     const sensors = useSensors(
         useSensor(MouseSensor, {
@@ -81,6 +83,29 @@ function App() {
 
     const handleRemoveExercise = (id: string) => {
         setPlannedExercises(plannedExercises.filter((ex) => ex.id !== id));
+    };
+
+    const handleDeleteExerciseFromMenu = (id: string) => {
+        setExerciseToDelete(id);
+    };
+
+    const confirmDeleteExercise = () => {
+        if (exerciseToDelete) {
+            setExercises(exercises.filter(ex => ex.id !== exerciseToDelete));
+            setExerciseToDelete(null);
+        }
+    };
+
+    const handleDeleteSection = (section: string) => {
+        setSectionToDelete(section);
+    };
+
+    const confirmDeleteSection = () => {
+        if (sectionToDelete) {
+            setSections(sections.filter(s => s !== sectionToDelete));
+            // Optional: Move exercises from deleted section to 'Uncategorized' or keep them as is (they will show in Uncategorized automatically)
+            setSectionToDelete(null);
+        }
     };
 
     const toggleMenu = () => {
@@ -267,6 +292,8 @@ function App() {
                     onAddExercise={handleAddExercise}
                     onAddSection={handleAddSection}
                     onAddToPlan={handleAddToPlan}
+                    onDeleteExercise={handleDeleteExerciseFromMenu}
+                    onDeleteSection={handleDeleteSection}
                     isVisible={isMenuVisible}
                 />
                 <ClassPlanner
@@ -302,6 +329,22 @@ function App() {
                     onConfirm={confirmClearAll}
                     title="¿Borrar toda la clase?"
                     message="¿Estás seguro de que quieres eliminar todos los ejercicios de la planificación? Esta acción no se puede deshacer y perderás el progreso actual."
+                />
+
+                <ConfirmationModal
+                    isOpen={!!exerciseToDelete}
+                    onClose={() => setExerciseToDelete(null)}
+                    onConfirm={confirmDeleteExercise}
+                    title="¿Eliminar ejercicio?"
+                    message="¿Estás seguro de que quieres eliminar este ejercicio de la biblioteca? Se mantendrá en las clases ya planificadas pero no podrás volver a añadirlo."
+                />
+
+                <ConfirmationModal
+                    isOpen={!!sectionToDelete}
+                    onClose={() => setSectionToDelete(null)}
+                    onConfirm={confirmDeleteSection}
+                    title="¿Eliminar sección?"
+                    message={`¿Estás seguro de que quieres eliminar la sección "${sectionToDelete}"? Los ejercicios de esta sección no se borrarán, pasarán a estar "Sin Categoría".`}
                 />
             </div>
         </DndContext>
