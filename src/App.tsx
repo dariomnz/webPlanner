@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import useLocalStorage from './hooks/useLocalStorage';
 import {
     DndContext,
     DragOverlay,
@@ -27,7 +28,7 @@ interface ActiveItem extends PlannedExercise {
 }
 
 function App() {
-    const [exercises, setExercises] = useState<Exercise[]>([
+    const [exercises, setExercises] = useLocalStorage<Exercise[]>('exercises', [
         { id: '1', name: 'The Hundred', section: 'Core' },
         { id: '2', name: 'Roll Up', section: 'Core' },
         { id: '3', name: 'Single Leg Circles', section: 'Legs' },
@@ -35,9 +36,9 @@ function App() {
         { id: '5', name: 'Single Leg Stretch', section: 'Legs' },
     ]);
 
-    const [sections, setSections] = useState<string[]>(['Core', 'Legs', 'Arms', 'Back']);
+    const [sections, setSections] = useLocalStorage<string[]>('sections', ['Core', 'Legs', 'Arms', 'Back']);
 
-    const [plannedExercises, setPlannedExercises] = useState<PlannedExercise[]>([]);
+    const [plannedExercises, setPlannedExercises] = useLocalStorage<PlannedExercise[]>('planned-exercises', []);
     const [activeId, setActiveId] = useState<string | null>(null);
     const [activeItem, setActiveItem] = useState<ActiveItem | null>(null);
     const [isMenuVisible, setIsMenuVisible] = useState<boolean>(true);
