@@ -4,7 +4,7 @@ import {
     DragOverlay,
     rectIntersection,
     KeyboardSensor,
-    PointerSensor,
+    TouchSensor,
     useSensor,
     useSensors,
     DragStartEvent,
@@ -40,13 +40,16 @@ function App() {
 
     const sensors = useSensors(
         useSensor(MouseSensor, {
+            // Require the mouse to move by 10 pixels before activating
             activationConstraint: {
-                distance: 8,
+                distance: 10,
             },
         }),
-        useSensor(PointerSensor, {
+        useSensor(TouchSensor, {
+            // Press delay of 250ms, with tolerance of 5px of movement
             activationConstraint: {
-                distance: 8,
+                delay: 250,
+                tolerance: 5,
             },
         }),
         useSensor(KeyboardSensor, {
