@@ -1,5 +1,8 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import useLocalStorage from './hooks/useLocalStorage';
+import { useDragAndDrop } from './hooks/useDragAndDrop';
+import { useExerciseManagement } from './hooks/useExerciseManagement';
+import { useMenuVisibility } from './hooks/useMenuVisibility';
 import {
     DndContext,
     DragOverlay,
@@ -8,27 +11,17 @@ import {
     TouchSensor,
     useSensor,
     useSensors,
-    DragStartEvent,
-    DragOverEvent,
-    DragEndEvent,
-    DragCancelEvent,
     MouseSensor,
 } from '@dnd-kit/core';
-import {
-    arrayMove,
-    sortableKeyboardCoordinates,
-} from '@dnd-kit/sortable';
-import ExerciseMenu from './components/ExerciseMenu.tsx';
+import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
+import ExerciseMenu from './components/ExerciseMenu';
 import ClassPlanner from './components/ClassPlanner.tsx';
 import ConfirmationModal from './components/ConfirmationModal.tsx';
-import { Exercise, PlannedExercise, DragData } from './types';
+import { Exercise, PlannedExercise } from './types';
 import { X, Menu } from 'lucide-react';
 
-interface ActiveItem extends PlannedExercise {
-    source?: 'menu' | 'planner';
-}
-
 function App() {
+    // Local storage state
     const [exercises, setExercises] = useLocalStorage<Exercise[]>('exercises', [
         { id: '1', name: 'The Hundred', section: 'Core' },
         { id: '2', name: 'Roll Up', section: 'Core' },
@@ -38,64 +31,60 @@ function App() {
     ]);
 
     const [sections, setSections] = useLocalStorage<string[]>('sections', ['Core', 'Legs', 'Arms', 'Back']);
-
     const [plannedExercises, setPlannedExercises] = useLocalStorage<PlannedExercise[]>('planned-exercises', []);
-    const [activeId, setActiveId] = useState<string | null>(null);
-    const [activeItem, setActiveItem] = useState<ActiveItem | null>(null);
-    const [isMenuVisible, setIsMenuVisible] = useState<boolean>(false);
+
+    // UI state
+    const [isEditMode, setIsEditMode] = useState<boolean>(false);
     const [isClearModalOpen, setIsClearModalOpen] = useState<boolean>(false);
     const [exerciseToDelete, setExerciseToDelete] = useState<string | null>(null);
     const [sectionToDelete, setSectionToDelete] = useState<string | null>(null);
-    const [isEditMode, setIsEditMode] = useState<boolean>(false);
 
-    // Track last swap to prevent redundant operations
-    const lastSwapRef = useRef<{ activeId: string; overId: string } | null>(null);
-
+    // Drag and drop sensors
     const sensors = useSensors(
         useSensor(MouseSensor, {
-            // Require the mouse to move by 10 pixels before activating
-            activationConstraint: {
-                distance: 10,
-            },
+            activationConstraint: { distance: 10 },
         }),
         useSensor(TouchSensor, {
-            // Press delay of 250ms, with tolerance of 5px of movement
-            activationConstraint: {
-                delay: 250,
-                tolerance: 5,
-            },
+            activationConstraint: { delay: 250, tolerance: 5 },
         }),
         useSensor(KeyboardSensor, {
             coordinateGetter: sortableKeyboardCoordinates,
         })
     );
 
-    const handleAddExercise = (name: string, section: string) => {
-        const newExercise: Exercise = {
-            id: Date.now().toString(),
-            name,
-            section,
-        };
-        setExercises([...exercises, newExercise]);
-    };
+    // Custom hooks for business logic
+    const exerciseManagement = useExerciseManagement({
+        exercises,
+        setExercises,
+        sections,
+        setSections,
+        plannedExercises,
+        setPlannedExercises,
+        isEditMode,
+    });
 
-    const handleAddSection = (section: string) => {
-        if (!sections.includes(section)) {
-            setSections([...sections, section]);
-        }
-    };
+    const dragAndDrop = useDragAndDrop({
+        plannedExercises,
+        setPlannedExercises,
+        exercises,
+        isEditMode,
+        onMoveExerciseToSection: exerciseManagement.handleMoveExerciseToSection,
+    });
 
-    const handleRemoveExercise = (id: string) => {
-        setPlannedExercises(plannedExercises.filter((ex) => ex.id !== id));
-    };
+    const menuVisibility = useMenuVisibility({
+        isEditMode,
+        activeId: dragAndDrop.activeId,
+        activeItemSource: dragAndDrop.activeItem?.source,
+    });
 
+    // Modal handlers
     const handleDeleteExerciseFromMenu = (id: string) => {
         setExerciseToDelete(id);
     };
 
     const confirmDeleteExercise = () => {
         if (exerciseToDelete) {
-            setExercises(exercises.filter(ex => ex.id !== exerciseToDelete));
+            exerciseManagement.handleDeleteExerciseFromMenu(exerciseToDelete);
             setExerciseToDelete(null);
         }
     };
@@ -104,244 +93,10 @@ function App() {
         setSectionToDelete(section);
     };
 
-    const handleMoveExerciseToSection = (exerciseId: string, newSection: string) => {
-        setExercises(exercises.map(ex =>
-            ex.id === exerciseId ? { ...ex, section: newSection } : ex
-        ));
-    };
-
-    const handleRenameExercise = (exerciseId: string, newName: string) => {
-        setExercises(exercises.map(ex =>
-            ex.id === exerciseId ? { ...ex, name: newName } : ex
-        ));
-    };
-
-    const handleUpdateExercise = (exerciseId: string, updates: Partial<Exercise>) => {
-        setExercises(exercises.map(ex =>
-            ex.id === exerciseId ? { ...ex, ...updates } : ex
-        ));
-    };
-
-    const handleRenameSection = (oldName: string, newName: string) => {
-        // Update section name in sections array
-        setSections(sections.map(s => s === oldName ? newName : s));
-        // Update section name in all exercises
-        setExercises(exercises.map(ex =>
-            ex.section === oldName ? { ...ex, section: newName } : ex
-        ));
-    };
-
     const confirmDeleteSection = () => {
         if (sectionToDelete) {
-            setSections(sections.filter(s => s !== sectionToDelete));
-            // Optional: Move exercises from deleted section to 'Uncategorized' or keep them as is (they will show in Uncategorized automatically)
+            exerciseManagement.handleDeleteSection(sectionToDelete);
             setSectionToDelete(null);
-        }
-    };
-
-    const toggleMenu = () => {
-        setIsMenuVisible(!isMenuVisible);
-    };
-
-    const handleDragStart = (event: DragStartEvent) => {
-        const { active } = event;
-        setActiveId(active.id as string);
-
-        // Reset swap tracking for new drag operation
-        lastSwapRef.current = null;
-
-        // Hide menu on mobile when dragging starts (only in planning mode)
-        if (window.innerWidth < 768 && !isEditMode) {
-            setIsMenuVisible(false);
-        }
-
-        // Determine if we are dragging from menu or planner
-        const data = active.data.current as DragData | undefined;
-        if (data?.type === 'menu-item') {
-            // Find the original exercise to get the section
-            const originalExercise = exercises.find(e => e.id === data.id);
-            setActiveItem({
-                id: data.id!,
-                name: data.name!,
-                description: data.description!,
-                section: originalExercise?.section || 'Uncategorized',
-                source: 'menu'
-            });
-        } else {
-            // Find item in planner
-            const item = plannedExercises.find(e => e.id === active.id);
-            if (item) setActiveItem({ ...item, source: 'planner' });
-        }
-    };
-
-    const handleAddToPlan = (exercise: Exercise) => {
-        // In edit mode, don't allow adding to planner
-        if (isEditMode) {
-            return;
-        }
-        const newItem: PlannedExercise = {
-            id: `planned-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-            name: exercise.name,
-            section: exercise.section,
-            description: exercise.description,
-        };
-        setPlannedExercises([...plannedExercises, newItem]);
-    };
-
-    const handleDragOver = (event: DragOverEvent) => {
-        const { active, over } = event;
-        console.log("active", active.id, "over", over?.id);
-
-        // If dropped outside any droppable area, remove the preview if it exists
-        if (!over) {
-            const data = active.data.current as DragData | undefined;
-            if (data?.type === 'menu-item') {
-                const previewId = `${active.id}-preview`;
-                setPlannedExercises((items) => items.filter((item) => item.id !== previewId));
-            }
-            return;
-        }
-
-        const activeId = active.id as string;
-        const overId = over.id as string;
-
-        // Case 1: Dragging from Menu
-        const data = active.data.current as DragData | undefined;
-        if (data?.type === 'menu-item') {
-            // In edit mode, only allow dragging to sections, not to planner
-            if (isEditMode) {
-                // Only handle section drops, ignore planner
-                return;
-            }
-
-            const previewId = `${activeId}-preview`;
-            const isActiveInPlanner = plannedExercises.some(ex => ex.id === previewId);
-            const isOverPlanner = over.id === 'planner-droppable' || plannedExercises.some(ex => ex.id === overId);
-            if (isOverPlanner) {
-                if (!isActiveInPlanner) {
-                    // Insert preview
-                    const newItem: PlannedExercise = {
-                        id: previewId,
-                        name: data.name!,
-                        section: data.section!,
-                        description: data.description!,
-                        isPreview: true, // Mark as preview
-                    };
-
-                    setPlannedExercises((items) => {
-                        const overIndex = items.findIndex((item) => item.id === overId);
-                        const newIndex = overIndex >= 0 ? overIndex : items.length;
-                        const newItems = [...items];
-                        newItems.splice(newIndex, 0, newItem);
-                        return newItems;
-                    });
-                } else if (previewId !== overId) {
-                    // Reorder preview item
-                    setPlannedExercises((items) => {
-                        const oldIndex = items.findIndex((item) => item.id === previewId);
-                        const newIndex = items.findIndex((item) => item.id === overId);
-                        if (oldIndex !== -1 && newIndex !== -1) {
-                            return arrayMove(items, oldIndex, newIndex);
-                        }
-                        return items;
-                    });
-                }
-            } else {
-                // Dragged out of planner - remove preview
-                if (isActiveInPlanner) {
-                    setPlannedExercises((items) => items.filter((item) => item.id !== previewId));
-                }
-            }
-        }
-        // Case 2: Reordering within Planner
-        else {
-            const isActiveInPlanner = plannedExercises.some(ex => ex.id === activeId);
-            const isOverPlanner = over.id === 'planner-droppable' || plannedExercises.some(ex => ex.id === overId);
-
-            if (isActiveInPlanner && isOverPlanner && activeId !== overId) {
-                // Check if this is the same swap we just did
-                const isSameSwap = lastSwapRef.current?.activeId === activeId && lastSwapRef.current?.overId === overId;
-
-                if (!isSameSwap) {
-                    console.log("Swapping within planner:", activeId, "<->", overId);
-                    lastSwapRef.current = { activeId, overId };
-
-                    setPlannedExercises((items) => {
-                        const oldIndex = items.findIndex((item) => item.id === activeId);
-                        const newIndex = items.findIndex((item) => item.id === overId);
-
-                        if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-                            // Efficient swap: create new array and swap only two elements
-                            const newItems = [...items];
-                            [newItems[oldIndex], newItems[newIndex]] = [newItems[newIndex], newItems[oldIndex]];
-                            return newItems;
-                        }
-                        return items;
-                    });
-                }
-            }
-        }
-    };
-
-    const handleDragEnd = (event: DragEndEvent) => {
-        const { active, over } = event;
-        setActiveId(null);
-        setActiveItem(null);
-
-        // Show menu again on mobile when dragging ends (only in planning mode)
-        if (window.innerWidth < 768 && active.data.current?.type === 'menu-item' && !isEditMode) {
-            setIsMenuVisible(true);
-        }
-
-        const data = active.data.current as DragData | undefined;
-        if (data?.type === 'menu-item') {
-            // Check if in edit mode and dropped on a section
-            if (isEditMode && over && typeof over.id === 'string' && over.id.startsWith('section-')) {
-                const newSection = over.id.replace('section-', '');
-                const exerciseId = data.id;
-                if (exerciseId) {
-                    handleMoveExerciseToSection(exerciseId, newSection);
-                }
-                return;
-            }
-
-            // In edit mode, don't allow adding to planner
-            if (isEditMode) {
-                return;
-            }
-
-            const previewId = `${active.id}-preview`;
-            const isOverPlanner = over && (over.id === 'planner-droppable' || plannedExercises.some(e => e.id === over.id));
-            if (isOverPlanner) {
-                // Finalize the drop: rename ID and remove isPreview flag
-                setPlannedExercises((items) => items.map(item => {
-                    if (item.id === previewId) {
-                        const { isPreview, ...rest } = item;
-                        return { ...rest, id: `planned-${Date.now()}-${Math.floor(Math.random() * 1000)}` };
-                    }
-                    return item;
-                }));
-            } else {
-                // Dropped outside: remove preview
-                setPlannedExercises((items) => items.filter((item) => item.id !== previewId));
-            }
-        }
-    };
-
-    const handleDragCancel = (event: DragCancelEvent) => {
-        const { active } = event;
-        setActiveId(null);
-        setActiveItem(null);
-
-        // Show menu again on mobile when dragging is cancelled (only in planning mode)
-        if (window.innerWidth < 768 && active.data.current?.type === 'menu-item' && !isEditMode) {
-            setIsMenuVisible(true);
-        }
-
-        const data = active.data.current as DragData | undefined;
-        if (data?.type === 'menu-item') {
-            const previewId = `${active.id}-preview`;
-            setPlannedExercises((items) => items.filter((item) => item.id !== previewId));
         }
     };
 
@@ -350,7 +105,7 @@ function App() {
     };
 
     const confirmClearAll = () => {
-        setPlannedExercises([]);
+        exerciseManagement.handleClearAll();
         setIsClearModalOpen(false);
     };
 
@@ -358,51 +113,47 @@ function App() {
         <DndContext
             sensors={sensors}
             collisionDetection={pointerWithin}
-            onDragStart={handleDragStart}
-            onDragOver={handleDragOver}
-            onDragEnd={handleDragEnd}
-            onDragCancel={handleDragCancel}
+            onDragStart={dragAndDrop.handleDragStart}
+            onDragOver={dragAndDrop.handleDragOver}
+            onDragEnd={dragAndDrop.handleDragEnd}
+            onDragCancel={dragAndDrop.handleDragCancel}
         >
             <div className="flex flex-col h-dvh w-screen font-sans text-gray-900">
                 <ExerciseMenu
                     exercises={exercises}
                     sections={sections}
-                    onAddExercise={handleAddExercise}
-                    onAddSection={handleAddSection}
-                    onAddToPlan={handleAddToPlan}
+                    onAddExercise={exerciseManagement.handleAddExercise}
+                    onAddSection={exerciseManagement.handleAddSection}
+                    onAddToPlan={exerciseManagement.handleAddToPlan}
                     onDeleteExercise={handleDeleteExerciseFromMenu}
                     onDeleteSection={handleDeleteSection}
-                    onMoveExerciseToSection={handleMoveExerciseToSection}
-                    onRenameExercise={handleRenameExercise}
-                    onUpdateExercise={handleUpdateExercise}
-                    onRenameSection={handleRenameSection}
+                    onMoveExerciseToSection={exerciseManagement.handleMoveExerciseToSection}
+                    onRenameExercise={exerciseManagement.handleRenameExercise}
+                    onUpdateExercise={exerciseManagement.handleUpdateExercise}
+                    onRenameSection={exerciseManagement.handleRenameSection}
                     isEditMode={isEditMode}
                     onEditModeChange={setIsEditMode}
-                    isVisible={isMenuVisible}
+                    isVisible={menuVisibility.isMenuVisible}
                 />
                 <ClassPlanner
                     plannedExercises={plannedExercises}
-                    onRemoveExercise={handleRemoveExercise}
+                    onRemoveExercise={exerciseManagement.handleRemoveExercise}
                     onClearAll={handleClearAll}
                 />
 
                 {/* Mobile menu toggle button */}
                 <button
-                    onClick={toggleMenu}
+                    onClick={menuVisibility.toggleMenu}
                     className="md:hidden fixed bottom-6 left-6 z-50 p-4 bg-pink-500 text-white rounded-full shadow-lg hover:bg-pink-600 transition-all active:scale-95"
-                    aria-label={isMenuVisible ? "Ocultar menú" : "Mostrar menú"}
+                    aria-label={menuVisibility.isMenuVisible ? "Ocultar menú" : "Mostrar menú"}
                 >
-                    {isMenuVisible ? (
-                        <X></X>
-                    ) : (
-                        <Menu></Menu>
-                    )}
+                    {menuVisibility.isMenuVisible ? <X></X> : <Menu></Menu>}
                 </button>
 
                 <DragOverlay>
-                    {activeId && activeItem ? (
+                    {dragAndDrop.activeId && dragAndDrop.activeItem ? (
                         <div className="p-3 bg-white rounded-lg shadow-xl border border-pink-300 opacity-90 w-64 cursor-grabbing">
-                            <span className="font-medium text-gray-800">{activeItem.name}</span>
+                            <span className="font-medium text-gray-800">{dragAndDrop.activeItem.name}</span>
                         </div>
                     ) : null}
                 </DragOverlay>
