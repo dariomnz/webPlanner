@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, FolderPlus, Calendar, Pencil } from 'lucide-react';
+import { Plus, FolderPlus, Calendar, Pencil, Download, Upload } from 'lucide-react';
 import { Exercise } from '../../types';
 import { Section } from './Section';
 
@@ -18,6 +18,8 @@ interface ExerciseMenuProps {
     isEditMode: boolean;
     onEditModeChange: (isEditMode: boolean) => void;
     isVisible: boolean;
+    onExportExercises: () => void;
+    onImportExercises: (file: File) => void;
 }
 
 export default function ExerciseMenu({
@@ -34,10 +36,21 @@ export default function ExerciseMenu({
     onRenameSection,
     isEditMode,
     onEditModeChange,
-    isVisible
+    isVisible,
+    onExportExercises,
+    onImportExercises
 }: ExerciseMenuProps) {
     const [newSection, setNewSection] = useState('');
     const [isAddingSection, setIsAddingSection] = useState(false);
+
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            onImportExercises(file);
+        }
+        // Reset input value to allow selecting the same file again
+        event.target.value = '';
+    };
 
     const handleAddSectionSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -58,21 +71,43 @@ export default function ExerciseMenu({
             <div className="p-4 border-b border-pink-100 bg-pink-50/30">
                 <div className="flex justify-between items-center mb-3">
                     <h2 className="text-xl font-serif text-pink-950 font-semibold">Ejercicios</h2>
-                    <div className="flex items-center gap-1 bg-white border border-pink-100 p-1 rounded-lg shadow-sm">
-                        <button
-                            onClick={() => onEditModeChange(false)}
-                            className={`p-1.5 rounded-md transition-all ${!isEditMode ? 'bg-pink-100 text-pink-700 shadow-sm' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
-                            title="Modo Planificación"
-                        >
-                            <Calendar size={16} />
-                        </button>
-                        <button
-                            onClick={() => onEditModeChange(true)}
-                            className={`p-1.5 rounded-md transition-all ${isEditMode ? 'bg-pink-100 text-pink-700 shadow-sm' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
-                            title="Modo Edición"
-                        >
-                            <Pencil size={16} />
-                        </button>
+                    <div className="flex items-center gap-1">
+                        {isEditMode && (
+                            <div className="flex items-center gap-1 bg-white border border-pink-100 p-1 rounded-lg shadow-sm mr-2">
+                                <button
+                                    onClick={onExportExercises}
+                                    className="p-1.5 rounded-md text-pink-400 hover:text-pink-600 hover:bg-pink-50 transition-all"
+                                    title="Guardar ejercicios (Backup)"
+                                >
+                                    <Download size={16} />
+                                </button>
+                                <label className="p-1.5 rounded-md text-pink-400 hover:text-pink-600 hover:bg-pink-50 transition-all cursor-pointer" title="Cargar ejercicios">
+                                    <Upload size={16} />
+                                    <input
+                                        type="file"
+                                        accept=".json"
+                                        onChange={handleFileChange}
+                                        className="hidden"
+                                    />
+                                </label>
+                            </div>
+                        )}
+                        <div className="flex items-center gap-1 bg-white border border-pink-100 p-1 rounded-lg shadow-sm">
+                            <button
+                                onClick={() => onEditModeChange(false)}
+                                className={`p-1.5 rounded-md transition-all ${!isEditMode ? 'bg-pink-100 text-pink-700 shadow-sm' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
+                                title="Modo Planificación"
+                            >
+                                <Calendar size={16} />
+                            </button>
+                            <button
+                                onClick={() => onEditModeChange(true)}
+                                className={`p-1.5 rounded-md transition-all ${isEditMode ? 'bg-pink-100 text-pink-700 shadow-sm' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
+                                title="Modo Edición"
+                            >
+                                <Pencil size={16} />
+                            </button>
+                        </div>
                     </div>
                 </div>
 

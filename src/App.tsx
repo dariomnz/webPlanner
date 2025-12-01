@@ -19,7 +19,7 @@ import ClassPlanner from './components/ClassPlanner.tsx';
 import ConfirmationModal from './components/ConfirmationModal.tsx';
 import { Exercise, PlannedExercise } from './types';
 import { X, Menu } from 'lucide-react';
-import { exportClassPlan } from './utils/exportUtils';
+import { exportClassPlan, exportDataToJson, importDataFromJson } from './utils/exportUtils';
 
 function App() {
     // Local storage state
@@ -40,6 +40,8 @@ function App() {
     const [isClearModalOpen, setIsClearModalOpen] = useState<boolean>(false);
     const [exerciseToDelete, setExerciseToDelete] = useState<string | null>(null);
     const [sectionToDelete, setSectionToDelete] = useState<string | null>(null);
+    const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
+    const [pendingImportData, setPendingImportData] = useState<{ exercises: Exercise[], sections: string[] } | null>(null);
 
     // Drag and drop sensors
     const sensors = useSensors(
@@ -128,6 +130,38 @@ function App() {
         exportClassPlan(classTitle, plannedExercises);
     };
 
+    const handleExportExercises = () => {
+        const data = {
+            exercises,
+            sections
+        };
+        exportDataToJson(data, 'exercises_backup');
+    };
+
+    const handleImportExercises = async (file: File) => {
+        try {
+            const data = await importDataFromJson(file);
+            if (data.exercises && Array.isArray(data.exercises) && data.sections && Array.isArray(data.sections)) {
+                setPendingImportData(data);
+                setIsImportModalOpen(true);
+            } else {
+                alert('El archivo no tiene el formato correcto.');
+            }
+        } catch (error) {
+            console.error('Error importing exercises:', error);
+            alert('Error al leer el archivo.');
+        }
+    };
+
+    const confirmImport = () => {
+        if (pendingImportData) {
+            setExercises(pendingImportData.exercises);
+            setSections(pendingImportData.sections);
+            setPendingImportData(null);
+            setIsImportModalOpen(false);
+        }
+    };
+
     return (
         <DndContext
             sensors={sensors}
@@ -153,6 +187,8 @@ function App() {
                     isEditMode={isEditMode}
                     onEditModeChange={setIsEditMode}
                     isVisible={menuVisibility.isMenuVisible}
+                    onExportExercises={handleExportExercises}
+                    onImportExercises={handleImportExercises}
                 />
                 <ClassPlanner
                     plannedExercises={plannedExercises}
@@ -179,6 +215,17 @@ function App() {
                         </div>
                     ) : null}
                 </DragOverlay>
+
+                <ConfirmationModal
+                    isOpen={isImportModalOpen}
+                    onClose={() => {
+                        setIsImportModalOpen(false);
+                        setPendingImportData(null);
+                    }}
+                    onConfirm={confirmImport}
+                    title="¿Importar ejercicios?"
+                    message="¿Estás seguro de que quieres importar estos ejercicios? Se reemplazarán todos los ejercicios y secciones actuales por los del archivo."
+                />
 
                 <ConfirmationModal
                     isOpen={isClearModalOpen}
