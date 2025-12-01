@@ -14,7 +14,7 @@ import {
     MouseSensor,
 } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
-import ExerciseMenu from './components/ExerciseMenu';
+import ExerciseMenu from './components/ExerciseMenu/ExerciseMenu.tsx';
 import ClassPlanner from './components/ClassPlanner.tsx';
 import ConfirmationModal from './components/ConfirmationModal.tsx';
 import { Exercise, PlannedExercise } from './types';

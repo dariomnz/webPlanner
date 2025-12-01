@@ -60,7 +60,7 @@ export const exportClassPlan = (classTitle: string, plannedExercises: PlannedExe
         ${plannedExercises.map(ex => `
             <li>
                 <div class="exercise-name"><span class="bullet">•</span>${ex.name}</div>
-                ${ex.description ? `<div class="exercise-description">${ex.description}</div>` : ''}
+                ${ex.description ? `<div class="exercise-description" style="white-space: pre-wrap;">${ex.description}</div>` : ''}
             </li>
         `).join('')}
     </ul>

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
 import { DragData, Exercise } from '../../types';
@@ -26,6 +26,18 @@ export function DraggableExercise({
     const [newDescription, setNewDescription] = useState(description || '');
     const [isExpanded, setIsExpanded] = useState(false);
     const formRef = useRef<HTMLDivElement>(null);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    const updateDescriptionsize = () => {
+        if (textareaRef.current) {
+            textareaRef.current.style.height = 'auto';
+            textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+        }
+    };
+    // Auto-resize textarea
+    useEffect(() => {
+        updateDescriptionsize();
+    }, [isRenaming, newDescription]);
 
     const dragdata: DragData = {
         type: 'menu-item',
@@ -101,13 +113,13 @@ export function DraggableExercise({
                             placeholder="Nombre del ejercicio"
                         />
                         <textarea
+                            ref={textareaRef}
                             value={newDescription}
                             onChange={(e) => setNewDescription(e.target.value)}
                             onBlur={handleBlur}
-                            className="w-full px-1 py-0.5 text-xs border border-pink-300 rounded focus:outline-none focus:ring-1 focus:ring-pink-400 resize-none"
+                            className="w-full px-1 py-0.5 text-xs border border-pink-300 rounded focus:outline-none focus:ring-1 focus:ring-pink-400 resize-none overflow-hidden"
                             onClick={(e) => e.stopPropagation()}
                             placeholder="Descripción (opcional)"
-                            rows={2}
                         />
                     </div>
                 ) : (
