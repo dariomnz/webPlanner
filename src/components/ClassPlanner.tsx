@@ -9,9 +9,11 @@ interface ClassPlannerProps {
     plannedExercises: PlannedExercise[];
     onRemoveExercise: (id: string) => void;
     onClearAll: () => void;
+    classTitle: string;
+    onTitleChange: (title: string) => void;
 }
 
-export default function ClassPlanner({ plannedExercises, onRemoveExercise, onClearAll }: ClassPlannerProps) {
+export default function ClassPlanner({ plannedExercises, onRemoveExercise, onClearAll, classTitle, onTitleChange }: ClassPlannerProps) {
     return (
         <div className="flex-1 h-screen bg-beige-50 p-8 overflow-y-auto">
             <div className="max-w-3xl mx-auto">
@@ -24,12 +26,13 @@ export default function ClassPlanner({ plannedExercises, onRemoveExercise, onCle
                     </h1>
                     <p className="text-pink-800/80 font-medium mb-4">Arrastra ejercicios aquí para construir tu clase</p>
 
-
                 </header>
 
                 <ClassPlannerList
                     plannedExercises={plannedExercises}
                     onRemoveExercise={onRemoveExercise}
+                    classTitle={classTitle}
+                    onTitleChange={onTitleChange}
                 />
 
                 {plannedExercises.length > 0 && (

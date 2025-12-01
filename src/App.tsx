@@ -32,6 +32,7 @@ function App() {
 
     const [sections, setSections] = useLocalStorage<string[]>('sections', ['Core', 'Legs', 'Arms', 'Back']);
     const [plannedExercises, setPlannedExercises] = useLocalStorage<PlannedExercise[]>('planned-exercises', []);
+    const [classTitle, setClassTitle] = useLocalStorage<string>('class-title', '');
 
     // UI state
     const [isEditMode, setIsEditMode] = useState<boolean>(false);
@@ -139,6 +140,8 @@ function App() {
                     plannedExercises={plannedExercises}
                     onRemoveExercise={exerciseManagement.handleRemoveExercise}
                     onClearAll={handleClearAll}
+                    classTitle={classTitle}
+                    onTitleChange={setClassTitle}
                 />
 
                 {/* Mobile menu toggle button */}
