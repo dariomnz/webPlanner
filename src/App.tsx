@@ -19,6 +19,7 @@ import ClassPlanner from './components/ClassPlanner.tsx';
 import ConfirmationModal from './components/ConfirmationModal.tsx';
 import { Exercise, PlannedExercise } from './types';
 import { X, Menu } from 'lucide-react';
+import { exportClassPlan } from './utils/exportUtils';
 
 function App() {
     // Local storage state
@@ -110,6 +111,10 @@ function App() {
         setIsClearModalOpen(false);
     };
 
+    const handleExport = () => {
+        exportClassPlan(classTitle, plannedExercises);
+    };
+
     return (
         <DndContext
             sensors={sensors}
@@ -142,6 +147,7 @@ function App() {
                     onClearAll={handleClearAll}
                     classTitle={classTitle}
                     onTitleChange={setClassTitle}
+                    onExport={handleExport}
                 />
 
                 {/* Mobile menu toggle button */}
@@ -185,7 +191,7 @@ function App() {
                     message={`¿Estás seguro de que quieres eliminar la sección "${sectionToDelete}"? Los ejercicios de esta sección no se borrarán, pasarán a estar "Sin Categoría".`}
                 />
             </div>
-        </DndContext>
+        </DndContext >
     );
 }
 
