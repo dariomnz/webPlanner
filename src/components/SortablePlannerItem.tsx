@@ -1,7 +1,7 @@
-
+import { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Trash2 } from 'lucide-react';
+import { GripVertical, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
 import { PlannedExercise } from '../types';
 
 interface SortablePlannerItemProps {
@@ -11,6 +11,7 @@ interface SortablePlannerItemProps {
 
 export default function SortablePlannerItem({ exercise, onRemove }: SortablePlannerItemProps) {
     const id = exercise.id;
+    const [isExpanded, setIsExpanded] = useState(false);
     const {
         attributes,
         listeners,
@@ -31,21 +32,42 @@ export default function SortablePlannerItem({ exercise, onRemove }: SortablePlan
         <div
             ref={setNodeRef}
             style={style}
-            className="flex items-center justify-between p-1 mb-1 bg-white rounded-xl shadow-sm border border-pink-200 group hover:shadow-md hover:border-pink-300 transition-all"
+            {...attributes} {...listeners}
+            className="flex flex-col p-1 mb-1 bg-white rounded-xl shadow-sm border border-pink-200 group hover:shadow-md hover:border-pink-300 transition-all cursor-grab active:cursor-grabbing p-2 hover:bg-pink-50 rounded-md mr-1 text-pink-400 flex-shrink-0"
         >
-            <div className="flex items-center flex-1 space-x-2">
-                <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-2 hover:bg-pink-50 rounded-md mr-3 text-pink-400">
-                    <GripVertical className="w-5 h-5" />
+            <div className="flex items-center justify-between w-full">
+                <div className="flex items-center flex-1 space-x-2 min-w-0">
+                    {exercise.description && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsExpanded(!isExpanded);
+                            }}
+                            className="p-1 text-pink-300 hover:text-pink-500 hover:bg-pink-50 rounded transition-colors flex-shrink-0"
+                            title={isExpanded ? "Ocultar descripción" : "Ver descripción"}
+                        >
+                            {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                        </button>
+                    )}
+
+                    <div className="flex items-center gap-2 truncate">
+                        <span className="text-lg text-pink-900 font-medium whitespace-nowrap">{exercise.section}:</span>
+                        <span className="text-lg text-gray-900 font-medium truncate">{exercise.name}</span>
+                    </div>
                 </div>
-                <span className="text-lg text-pink-900 font-medium">{exercise.section}:</span>
-                <span className="text-lg text-gray-900 font-medium">{exercise.name}</span>
+                <button
+                    onClick={() => onRemove(id)}
+                    className="p-2 text-gray-400 hover:text-pink-500 hover:bg-pink-50 rounded-full transition-colors group-hover:opacity-100 flex-shrink-0"
+                >
+                    <Trash2 className="w-5 h-5" />
+                </button>
             </div>
-            <button
-                onClick={() => onRemove(id)}
-                className="p-2 text-gray-400 hover:text-pink-500 hover:bg-pink-50 rounded-full transition-colors group-hover:opacity-100"
-            >
-                <Trash2 className="w-5 h-5" />
-            </button>
+
+            {isExpanded && exercise.description && (
+                <div className="mt-1 text-sm text-gray-600 pl-12 pr-4 pb-2 whitespace-pre-wrap border-t border-pink-50 pt-2 ml-2">
+                    {exercise.description}
+                </div>
+            )}
         </div>
     );
 }

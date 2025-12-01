@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import useLocalStorage from './hooks/useLocalStorage';
 import {
     DndContext,
     DragOverlay,
-    rectIntersection,
+    pointerWithin,
     KeyboardSensor,
     TouchSensor,
     useSensor,
@@ -47,6 +47,9 @@ function App() {
     const [exerciseToDelete, setExerciseToDelete] = useState<string | null>(null);
     const [sectionToDelete, setSectionToDelete] = useState<string | null>(null);
     const [isEditMode, setIsEditMode] = useState<boolean>(false);
+
+    // Track last swap to prevent redundant operations
+    const lastSwapRef = useRef<{ activeId: string; overId: string } | null>(null);
 
     const sensors = useSensors(
         useSensor(MouseSensor, {
@@ -113,6 +116,12 @@ function App() {
         ));
     };
 
+    const handleUpdateExercise = (exerciseId: string, updates: Partial<Exercise>) => {
+        setExercises(exercises.map(ex =>
+            ex.id === exerciseId ? { ...ex, ...updates } : ex
+        ));
+    };
+
     const handleRenameSection = (oldName: string, newName: string) => {
         // Update section name in sections array
         setSections(sections.map(s => s === oldName ? newName : s));
@@ -138,6 +147,9 @@ function App() {
         const { active } = event;
         setActiveId(active.id as string);
 
+        // Reset swap tracking for new drag operation
+        lastSwapRef.current = null;
+
         // Hide menu on mobile when dragging starts (only in planning mode)
         if (window.innerWidth < 768 && !isEditMode) {
             setIsMenuVisible(false);
@@ -151,6 +163,7 @@ function App() {
             setActiveItem({
                 id: data.id!,
                 name: data.name!,
+                description: data.description!,
                 section: originalExercise?.section || 'Uncategorized',
                 source: 'menu'
             });
@@ -170,12 +183,14 @@ function App() {
             id: `planned-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
             name: exercise.name,
             section: exercise.section,
+            description: exercise.description,
         };
         setPlannedExercises([...plannedExercises, newItem]);
     };
 
     const handleDragOver = (event: DragOverEvent) => {
         const { active, over } = event;
+        console.log("active", active.id, "over", over?.id);
 
         // If dropped outside any droppable area, remove the preview if it exists
         if (!over) {
@@ -209,6 +224,7 @@ function App() {
                         id: previewId,
                         name: data.name!,
                         section: data.section!,
+                        description: data.description!,
                         isPreview: true, // Mark as preview
                     };
 
@@ -243,11 +259,26 @@ function App() {
             const isOverPlanner = over.id === 'planner-droppable' || plannedExercises.some(ex => ex.id === overId);
 
             if (isActiveInPlanner && isOverPlanner && activeId !== overId) {
-                setPlannedExercises((items) => {
-                    const oldIndex = items.findIndex((item) => item.id === activeId);
-                    const newIndex = items.findIndex((item) => item.id === overId);
-                    return arrayMove(items, oldIndex, newIndex);
-                });
+                // Check if this is the same swap we just did
+                const isSameSwap = lastSwapRef.current?.activeId === activeId && lastSwapRef.current?.overId === overId;
+
+                if (!isSameSwap) {
+                    console.log("Swapping within planner:", activeId, "<->", overId);
+                    lastSwapRef.current = { activeId, overId };
+
+                    setPlannedExercises((items) => {
+                        const oldIndex = items.findIndex((item) => item.id === activeId);
+                        const newIndex = items.findIndex((item) => item.id === overId);
+
+                        if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+                            // Efficient swap: create new array and swap only two elements
+                            const newItems = [...items];
+                            [newItems[oldIndex], newItems[newIndex]] = [newItems[newIndex], newItems[oldIndex]];
+                            return newItems;
+                        }
+                        return items;
+                    });
+                }
             }
         }
     };
@@ -326,13 +357,13 @@ function App() {
     return (
         <DndContext
             sensors={sensors}
-            collisionDetection={rectIntersection}
+            collisionDetection={pointerWithin}
             onDragStart={handleDragStart}
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
             onDragCancel={handleDragCancel}
         >
-            <div className="flex h-screen bg-beige-50 font-sans text-gray-900">
+            <div className="flex flex-col h-dvh w-screen font-sans text-gray-900">
                 <ExerciseMenu
                     exercises={exercises}
                     sections={sections}
@@ -343,6 +374,7 @@ function App() {
                     onDeleteSection={handleDeleteSection}
                     onMoveExerciseToSection={handleMoveExerciseToSection}
                     onRenameExercise={handleRenameExercise}
+                    onUpdateExercise={handleUpdateExercise}
                     onRenameSection={handleRenameSection}
                     isEditMode={isEditMode}
                     onEditModeChange={setIsEditMode}

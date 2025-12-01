@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T | ((val: T) => T)) => void] {
     // Get from local storage then parse stored json or return initialValue
@@ -12,22 +12,33 @@ function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T | ((val
         }
     });
 
-    // Return a wrapped version of useState's setter function that ...
-    // ... persists the new value to localStorage.
-    const setValue = (value: T | ((val: T) => T)) => {
+    // Debounce writing to localStorage to avoid performance issues during frequent updates
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            try {
+                window.localStorage.setItem(key, JSON.stringify(storedValue));
+            } catch (error) {
+                console.error(error);
+            }
+        }, 100); // Wait 100ms after the last change to write
+
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [key, storedValue]);
+
+    // Return a wrapped version of useState's setter function
+    const setValue = useCallback((value: T | ((val: T) => T)) => {
         try {
             // Allow value to be a function so we have same API as useState
-            const valueToStore =
-                value instanceof Function ? value(storedValue) : value;
-            // Save state
-            setStoredValue(valueToStore);
-            // Save to local storage
-            window.localStorage.setItem(key, JSON.stringify(valueToStore));
+            setStoredValue((prevValue) => {
+                const valueToStore = value instanceof Function ? value(prevValue) : value;
+                return valueToStore;
+            });
         } catch (error) {
-            // A more advanced implementation would handle the error case
             console.error(error);
         }
-    };
+    }, []);
 
     return [storedValue, setValue];
 }
