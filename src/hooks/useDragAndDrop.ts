@@ -7,7 +7,7 @@ import {
 } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { PlannedExercise, DragData, ActiveItem, Exercise } from '../types';
-import { createPlannedExercise, createPreviewExercise, finalizePreviewExercise } from '../utils/exerciseHelpers';
+import { createPreviewExercise, finalizePreviewExercise } from '../utils/exerciseHelpers';
 
 interface UseDragAndDropProps {
     plannedExercises: PlannedExercise[];
@@ -15,6 +15,7 @@ interface UseDragAndDropProps {
     exercises: Exercise[];
     isEditMode: boolean;
     onMoveExerciseToSection: (exerciseId: string, newSection: string) => void;
+    onDragEndShowMenu?: () => void; // Optional callback to show menu when drag ends
 }
 
 export function useDragAndDrop({
@@ -23,6 +24,7 @@ export function useDragAndDrop({
     exercises,
     isEditMode,
     onMoveExerciseToSection,
+    onDragEndShowMenu,
 }: UseDragAndDropProps) {
     const [activeId, setActiveId] = useState<string | null>(null);
     const [activeItem, setActiveItem] = useState<ActiveItem | null>(null);
@@ -164,8 +166,11 @@ export function useDragAndDrop({
             } else {
                 setPlannedExercises((items) => items.filter((item) => item.id !== previewId));
             }
+
+            // Only show menu when dragging FROM menu (not when reordering within planner)
+            onDragEndShowMenu?.();
         }
-    }, [plannedExercises, setPlannedExercises, isEditMode, onMoveExerciseToSection]);
+    }, [plannedExercises, setPlannedExercises, isEditMode, onMoveExerciseToSection, onDragEndShowMenu]);
 
     const handleDragCancel = useCallback((event: DragCancelEvent) => {
         const { active } = event;

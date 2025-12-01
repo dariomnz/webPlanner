@@ -65,19 +65,32 @@ function App() {
         isEditMode,
     });
 
+    // Create a stable callback ref for showing menu
+    const [activeIdForMenu, setActiveIdForMenu] = useState<string | null>(null);
+    const [activeItemSourceForMenu, setActiveItemSourceForMenu] = useState<'menu' | 'planner' | undefined>(undefined);
+
+    const menuVisibility = useMenuVisibility({
+        isEditMode,
+        activeId: activeIdForMenu,
+        activeItemSource: activeItemSourceForMenu,
+    });
+
     const dragAndDrop = useDragAndDrop({
         plannedExercises,
         setPlannedExercises,
         exercises,
         isEditMode,
         onMoveExerciseToSection: exerciseManagement.handleMoveExerciseToSection,
+        onDragEndShowMenu: menuVisibility.showMenuOnMobile,
     });
 
-    const menuVisibility = useMenuVisibility({
-        isEditMode,
-        activeId: dragAndDrop.activeId,
-        activeItemSource: dragAndDrop.activeItem?.source,
-    });
+    // Sync drag state to menu visibility
+    if (dragAndDrop.activeId !== activeIdForMenu) {
+        setActiveIdForMenu(dragAndDrop.activeId);
+    }
+    if (dragAndDrop.activeItem?.source !== activeItemSourceForMenu) {
+        setActiveItemSourceForMenu(dragAndDrop.activeItem?.source);
+    }
 
     // Modal handlers
     const handleDeleteExerciseFromMenu = (id: string) => {
