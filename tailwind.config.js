@@ -40,6 +40,38 @@ export default {
                 sans: ['Outfit', 'sans-serif'],
                 serif: ['"Playfair Display"', 'serif'],
             },
+            keyframes: {
+                'heart-pop': {
+                    '0%': { transform: 'scale(0)', opacity: '0' },
+                    '50%': { transform: 'scale(1.2)', opacity: '1' },
+                    '100%': { transform: 'scale(1)', opacity: '1' },
+                },
+                'heart-pulse': {
+                    '0%, 100%': { transform: 'scale(1)' },
+                    '50%': { transform: 'scale(1.1)' },
+                },
+                'heart-particle': {
+                    '0%': { transform: 'translateY(0) scale(1)', opacity: '1' },
+                    '100%': { transform: 'translateY(-100px) scale(0)', opacity: '0' },
+                },
+                'fade-in-out': {
+                    '0%': { opacity: '0' },
+                    '20%': { opacity: '1' },
+                    '80%': { opacity: '1' },
+                    '100%': { opacity: '0' },
+                },
+                'ballerina-spin': {
+                    '0%, 100%': { transform: 'scaleX(1)' },
+                    '50%': { transform: 'scaleX(-1)' },
+                },
+            },
+            animation: {
+                'heart-pop': 'heart-pop 0.5s ease-out',
+                'heart-pulse': 'heart-pulse 1s ease-in-out infinite',
+                'heart-particle': 'heart-particle 1.5s ease-out forwards',
+                'fade-in-out': 'fade-in-out 2s ease-in-out',
+                'ballerina-spin': 'ballerina-spin 1s ease-in-out infinite',
+            },
         },
     },
     plugins: [],

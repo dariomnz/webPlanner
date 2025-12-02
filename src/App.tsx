@@ -17,9 +17,11 @@ import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import ExerciseMenu from './components/ExerciseMenu/ExerciseMenu.tsx';
 import ClassPlanner from './components/ClassPlanner.tsx';
 import ConfirmationModal from './components/ConfirmationModal.tsx';
+import HeartAnimation from './components/HeartAnimation.tsx';
 import { Exercise, PlannedExercise, Section } from './types';
-import { X, Menu } from 'lucide-react';
+import { X, Menu, Heart } from 'lucide-react';
 import { exportClassPlan, exportDataToJson, importDataFromJson, importClassPlan } from './utils/exportUtils';
+
 
 function App() {
     // Local storage state
@@ -49,6 +51,8 @@ function App() {
     const [groupToDelete, setGroupToDelete] = useState<string | null>(null);
     const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
     const [pendingImportData, setPendingImportData] = useState<{ exercises: Exercise[], sections: Section[], groups: string[] } | null>(null);
+    const [showHeartAnimation, setShowHeartAnimation] = useState<boolean>(false);
+
 
     // Drag and drop sensors
     const sensors = useSensors(
@@ -259,13 +263,29 @@ function App() {
                 />
 
                 {/* Mobile menu toggle button */}
-                <button
-                    onClick={menuVisibility.toggleMenu}
-                    className="md:hidden fixed bottom-6 left-6 z-50 p-4 bg-pink-500 text-white rounded-full shadow-lg hover:bg-pink-600 transition-all active:scale-95"
-                    aria-label={menuVisibility.isMenuVisible ? "Ocultar menú" : "Mostrar menú"}
-                >
-                    {menuVisibility.isMenuVisible ? <X></X> : <Menu></Menu>}
-                </button>
+                <div className="md:hidden fixed bottom-6 left-6 z-50 flex gap-3">
+                    {/* Menu toggle button */}
+                    <button
+                        onClick={menuVisibility.toggleMenu}
+                        className="p-4 bg-pink-500 text-white rounded-full shadow-lg hover:bg-pink-600 transition-all active:scale-95"
+                        aria-label={menuVisibility.isMenuVisible ? "Ocultar menú" : "Mostrar menú"}
+                    >
+                        {menuVisibility.isMenuVisible ? <X></X> : <Menu></Menu>}
+                    </button>
+
+                    {/* Heart button - only visible when menu is open */}
+                    {menuVisibility.isMenuVisible && (
+                        <button
+                            onClick={() => setShowHeartAnimation(true)}
+                            className="p-4 bg-pink-500 text-white rounded-full shadow-lg hover:bg-pink-600 transition-all scale-70 active:scale-60 animate-heart-pop"
+                            aria-label="Mostrar corazón"
+                        >
+                            <Heart fill="currentColor" />
+                        </button>
+                    )}
+
+                </div>
+
 
                 <DragOverlay>
                     {dragAndDrop.activeId && dragAndDrop.activeItem ? (
@@ -317,9 +337,15 @@ function App() {
                     title="¿Eliminar grupo?"
                     message={`¿Estás seguro de que quieres eliminar el grupo "${groupToDelete}"? SE BORRARÁN TODOS LOS EJERCICIOS Y SECCIONES de este grupo. Esta acción no se puede deshacer.`}
                 />
+
+                {/* Heart Animation */}
+                {showHeartAnimation && (
+                    <HeartAnimation onComplete={() => setShowHeartAnimation(false)} />
+                )}
             </div>
         </DndContext >
     );
 }
 
 export default App;
+
