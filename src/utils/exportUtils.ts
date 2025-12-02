@@ -31,11 +31,19 @@ export const exportClassPlan = (classTitle: string, plannedExercises: PlannedExe
             margin-bottom: 20px;
             page-break-inside: avoid;
         }
-        .exercise-name {
-            font-weight: bold;
-            font-size: 1.2em;
-            color: #1f2937;
+        .exercise-header {
             margin-bottom: 5px;
+        }
+        .exercise-name {
+            font-weight: 500;
+            font-size: 1.2em;
+            color: #111827; /* gray-900 */
+        }
+        .exercise-section {
+            font-size: 1.2em;
+            color: #831843; /* pink-900 */
+            margin-right: 5px;
+            font-weight: 500;
         }
         .exercise-description {
             margin-left: 20px;
@@ -59,7 +67,11 @@ export const exportClassPlan = (classTitle: string, plannedExercises: PlannedExe
     <ul>
         ${plannedExercises.map(ex => `
             <li>
-                <div class="exercise-name"><span class="bullet">•</span>${ex.name}</div>
+                <div class="exercise-header">
+                    <span class="bullet">•</span>
+                    <span class="exercise-section">${ex.section}:</span>
+                    <span class="exercise-name">${ex.name}</span>
+                </div>
                 ${ex.description ? `<div class="exercise-description" style="white-space: pre-wrap;">${ex.description}</div>` : ''}
             </li>
         `).join('')}
@@ -78,6 +90,83 @@ export const exportClassPlan = (classTitle: string, plannedExercises: PlannedExe
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+};
+
+export const importClassPlan = (file: File): Promise<{ classTitle: string, plannedExercises: PlannedExercise[] }> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const content = event.target?.result as string;
+
+                // Check if it's a JSON file first (legacy support or direct JSON export)
+                try {
+                    const json = JSON.parse(content);
+                    if (json.plannedExercises) {
+                        resolve(json);
+                        return;
+                    }
+                } catch {
+                    // Not a JSON file, continue to HTML parsing
+                }
+
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(content, 'text/html');
+
+                // Check for embedded JSON (backward compatibility)
+                const script = doc.getElementById('webplanner-data');
+                if (script && script.textContent) {
+                    try {
+                        const data = JSON.parse(script.textContent);
+                        resolve(data);
+                        return;
+                    } catch (e) {
+                        console.warn('Failed to parse embedded JSON, falling back to HTML parsing');
+                    }
+                }
+
+                // Parse HTML structure
+                const titleElement = doc.querySelector('title');
+                const classTitle = titleElement?.textContent || 'Clase Importada';
+
+                const listItems = doc.querySelectorAll('li');
+                const plannedExercises: PlannedExercise[] = Array.from(listItems).map((li, index) => {
+                    const nameEl = li.querySelector('.exercise-name');
+                    const sectionEl = li.querySelector('.exercise-section');
+                    const descEl = li.querySelector('.exercise-description');
+
+                    // Extract name and remove the bullet point if present
+                    let name = nameEl?.textContent || 'Ejercicio sin nombre';
+                    name = name.replace('•', '').trim();
+
+                    const description = descEl?.textContent?.trim();
+                    let section = sectionEl?.textContent?.trim() || 'Imported';
+                    // Remove trailing colon if present
+                    if (section.endsWith(':')) {
+                        section = section.slice(0, -1);
+                    }
+
+                    return {
+                        id: `imported-${Date.now()}-${index}`,
+                        name: name,
+                        section: section,
+                        description: description || undefined
+                    };
+                });
+
+                if (plannedExercises.length > 0) {
+                    resolve({ classTitle, plannedExercises });
+                } else {
+                    reject(new Error('No se encontraron ejercicios en el archivo HTML'));
+                }
+
+            } catch (error) {
+                reject(error);
+            }
+        };
+        reader.onerror = (error) => reject(error);
+        reader.readAsText(file);
+    });
 };
 
 export const exportDataToJson = (data: any, filename: string) => {

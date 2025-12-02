@@ -19,7 +19,7 @@ import ClassPlanner from './components/ClassPlanner.tsx';
 import ConfirmationModal from './components/ConfirmationModal.tsx';
 import { Exercise, PlannedExercise } from './types';
 import { X, Menu } from 'lucide-react';
-import { exportClassPlan, exportDataToJson, importDataFromJson } from './utils/exportUtils';
+import { exportClassPlan, exportDataToJson, importDataFromJson, importClassPlan } from './utils/exportUtils';
 
 function App() {
     // Local storage state
@@ -130,6 +130,29 @@ function App() {
         exportClassPlan(classTitle, plannedExercises);
     };
 
+    const handleImportClass = async (file: File) => {
+        try {
+            const data = await importClassPlan(file);
+            if (data.plannedExercises && Array.isArray(data.plannedExercises)) {
+                // Confirm before overwriting if there are existing exercises
+                if (plannedExercises.length > 0) {
+                    if (window.confirm('¿Quieres reemplazar la planificación actual con la importada?')) {
+                        setPlannedExercises(data.plannedExercises);
+                        setClassTitle(data.classTitle || '');
+                    }
+                } else {
+                    setPlannedExercises(data.plannedExercises);
+                    setClassTitle(data.classTitle || '');
+                }
+            } else {
+                alert('El archivo no contiene una planificación válida.');
+            }
+        } catch (error) {
+            console.error('Error importing class plan:', error);
+            alert('Error al importar la clase. Asegúrate de que es un archivo válido generado por esta aplicación.');
+        }
+    };
+
     const handleExportExercises = () => {
         const data = {
             exercises,
@@ -197,6 +220,7 @@ function App() {
                     classTitle={classTitle}
                     onTitleChange={setClassTitle}
                     onExport={handleExport}
+                    onImport={handleImportClass}
                 />
 
                 {/* Mobile menu toggle button */}
