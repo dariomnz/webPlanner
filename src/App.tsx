@@ -17,21 +17,27 @@ import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import ExerciseMenu from './components/ExerciseMenu/ExerciseMenu.tsx';
 import ClassPlanner from './components/ClassPlanner.tsx';
 import ConfirmationModal from './components/ConfirmationModal.tsx';
-import { Exercise, PlannedExercise } from './types';
+import { Exercise, PlannedExercise, Section } from './types';
 import { X, Menu } from 'lucide-react';
 import { exportClassPlan, exportDataToJson, importDataFromJson, importClassPlan } from './utils/exportUtils';
 
 function App() {
     // Local storage state
     const [exercises, setExercises] = useLocalStorage<Exercise[]>('exercises', [
-        { id: '1', name: 'The Hundred', section: 'Core' },
-        { id: '2', name: 'Roll Up', section: 'Core' },
-        { id: '3', name: 'Single Leg Circles', section: 'Legs' },
-        { id: '4', name: 'Rolling Like a Ball', section: 'Core' },
-        { id: '5', name: 'Single Leg Stretch', section: 'Legs' },
+        { id: '1', name: 'The Hundred', section: 'Core', group: 'General' },
+        { id: '2', name: 'Roll Up', section: 'Core', group: 'General' },
+        { id: '3', name: 'Single Leg Circles', section: 'Legs', group: 'General' },
+        { id: '4', name: 'Rolling Like a Ball', section: 'Core', group: 'General' },
+        { id: '5', name: 'Single Leg Stretch', section: 'Legs', group: 'General' },
     ]);
 
-    const [sections, setSections] = useLocalStorage<string[]>('sections', ['Core', 'Legs', 'Arms', 'Back']);
+    const [groups, setGroups] = useLocalStorage<string[]>('groups', ['General']);
+    const [sections, setSections] = useLocalStorage<Section[]>('sections', [
+        { name: 'Core', group: 'General' },
+        { name: 'Legs', group: 'General' },
+        { name: 'Arms', group: 'General' },
+        { name: 'Back', group: 'General' }
+    ]);
     const [plannedExercises, setPlannedExercises] = useLocalStorage<PlannedExercise[]>('planned-exercises', []);
     const [classTitle, setClassTitle] = useLocalStorage<string>('class-title', '');
 
@@ -39,9 +45,10 @@ function App() {
     const [isEditMode, setIsEditMode] = useState<boolean>(false);
     const [isClearModalOpen, setIsClearModalOpen] = useState<boolean>(false);
     const [exerciseToDelete, setExerciseToDelete] = useState<string | null>(null);
-    const [sectionToDelete, setSectionToDelete] = useState<string | null>(null);
+    const [sectionToDelete, setSectionToDelete] = useState<{ name: string, group: string } | null>(null);
+    const [groupToDelete, setGroupToDelete] = useState<string | null>(null);
     const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
-    const [pendingImportData, setPendingImportData] = useState<{ exercises: Exercise[], sections: string[] } | null>(null);
+    const [pendingImportData, setPendingImportData] = useState<{ exercises: Exercise[], sections: Section[], groups: string[] } | null>(null);
 
     // Drag and drop sensors
     const sensors = useSensors(
@@ -106,14 +113,36 @@ function App() {
         }
     };
 
-    const handleDeleteSection = (section: string) => {
-        setSectionToDelete(section);
+    const handleDeleteSection = (sectionName: string, group: string) => {
+        setSectionToDelete({ name: sectionName, group });
     };
 
     const confirmDeleteSection = () => {
         if (sectionToDelete) {
-            exerciseManagement.handleDeleteSection(sectionToDelete);
+            exerciseManagement.handleDeleteSection(sectionToDelete.name, sectionToDelete.group);
             setSectionToDelete(null);
+        }
+    };
+
+    const handleDeleteGroup = (group: string) => {
+        setGroupToDelete(group);
+    };
+
+    const confirmDeleteGroup = () => {
+        if (groupToDelete) {
+            // Eliminar ejercicios del grupo (manejando ejercicios sin grupo como 'General')
+            const newExercises = exercises.filter(ex => (ex.group || 'General') !== groupToDelete);
+            setExercises(newExercises);
+
+            // Eliminar secciones del grupo
+            const newSections = sections.filter(s => s.group !== groupToDelete);
+            setSections(newSections);
+
+            // Eliminar el grupo
+            const newGroups = groups.filter(g => g !== groupToDelete);
+            setGroups(newGroups);
+
+            setGroupToDelete(null);
         }
     };
 
@@ -156,7 +185,8 @@ function App() {
     const handleExportExercises = () => {
         const data = {
             exercises,
-            sections
+            sections,
+            groups
         };
         exportDataToJson(data, 'exercises_backup');
     };
@@ -165,7 +195,17 @@ function App() {
         try {
             const data = await importDataFromJson(file);
             if (data.exercises && Array.isArray(data.exercises) && data.sections && Array.isArray(data.sections)) {
-                setPendingImportData(data);
+                // Migración para archivos antiguos que no tienen grupos
+                const importedSections = data.sections.map((s: any) =>
+                    typeof s === 'string' ? { name: s, group: 'General' } : s
+                );
+                const importedGroups = data.groups || ['General'];
+
+                setPendingImportData({
+                    exercises: data.exercises,
+                    sections: importedSections,
+                    groups: importedGroups
+                });
                 setIsImportModalOpen(true);
             } else {
                 alert('El archivo no tiene el formato correcto.');
@@ -180,6 +220,7 @@ function App() {
         if (pendingImportData) {
             setExercises(pendingImportData.exercises);
             setSections(pendingImportData.sections);
+            setGroups(pendingImportData.groups);
             setPendingImportData(null);
             setIsImportModalOpen(false);
         }
@@ -198,11 +239,14 @@ function App() {
                 <ExerciseMenu
                     exercises={exercises}
                     sections={sections}
+                    groups={groups}
+                    setGroups={setGroups}
                     onAddExercise={exerciseManagement.handleAddExercise}
                     onAddSection={exerciseManagement.handleAddSection}
                     onAddToPlan={exerciseManagement.handleAddToPlan}
                     onDeleteExercise={handleDeleteExerciseFromMenu}
                     onDeleteSection={handleDeleteSection}
+                    onDeleteGroup={handleDeleteGroup}
                     onMoveExerciseToSection={exerciseManagement.handleMoveExerciseToSection}
                     onRenameExercise={exerciseManagement.handleRenameExercise}
                     onUpdateExercise={exerciseManagement.handleUpdateExercise}
@@ -272,7 +316,15 @@ function App() {
                     onClose={() => setSectionToDelete(null)}
                     onConfirm={confirmDeleteSection}
                     title="¿Eliminar sección?"
-                    message={`¿Estás seguro de que quieres eliminar la sección "${sectionToDelete}"? Los ejercicios de esta sección no se borrarán, pasarán a estar "Sin Categoría".`}
+                    message={`¿Estás seguro de que quieres eliminar la sección "${sectionToDelete?.name}"? Los ejercicios de esta sección no se borrarán, pasarán a estar "Sin Categoría".`}
+                />
+
+                <ConfirmationModal
+                    isOpen={!!groupToDelete}
+                    onClose={() => setGroupToDelete(null)}
+                    onConfirm={confirmDeleteGroup}
+                    title="¿Eliminar grupo?"
+                    message={`¿Estás seguro de que quieres eliminar el grupo "${groupToDelete}"? SE BORRARÁN TODOS LOS EJERCICIOS Y SECCIONES de este grupo. Esta acción no se puede deshacer.`}
                 />
             </div>
         </DndContext >

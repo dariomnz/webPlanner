@@ -3,7 +3,14 @@ export interface Exercise {
     name: string;
     section: string;
     description?: string;
+    group?: string;
 }
+
+export interface Section {
+    name: string;
+    group: string;
+}
+
 
 export interface PlannedExercise extends Exercise {
     isPreview?: boolean;

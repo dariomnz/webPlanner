@@ -7,7 +7,7 @@ import { DraggableExercise } from './DraggableExercise';
 interface SectionProps {
     title: string;
     exercises: Exercise[];
-    onAddExercise: (name: string, section: string) => void;
+    onAddExercise: (name: string, section: string, group?: string) => void;
     onAddToPlan: (exercise: Exercise) => void;
     onDeleteExercise: (id: string) => void;
     onDeleteSection?: (section: string) => void;
@@ -15,6 +15,7 @@ interface SectionProps {
     onRenameExercise: (id: string, newName: string) => void;
     onUpdateExercise: (id: string, updates: Partial<Exercise>) => void;
     isEditMode: boolean;
+    currentGroup?: string;
 }
 
 export function Section({
@@ -27,7 +28,8 @@ export function Section({
     onRenameSection,
     onRenameExercise,
     onUpdateExercise,
-    isEditMode
+    isEditMode,
+    currentGroup
 }: SectionProps) {
     const [isOpen, setIsOpen] = useState(true);
     const [newExercise, setNewExercise] = useState('');
@@ -43,7 +45,7 @@ export function Section({
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (newExercise.trim()) {
-            onAddExercise(newExercise.trim(), title);
+            onAddExercise(newExercise.trim(), title, currentGroup);
             setNewExercise('');
             setIsAdding(false);
         }

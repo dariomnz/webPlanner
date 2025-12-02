@@ -1,20 +1,23 @@
-import { useState } from 'react';
-import { Plus, FolderPlus, Calendar, Pencil, Download, Upload } from 'lucide-react';
-import { Exercise } from '../../types';
+import { useState, useMemo, useEffect } from 'react';
+import { Plus, FolderPlus, Calendar, Pencil, Download, Upload, Tag, Trash2 } from 'lucide-react';
+import { Exercise, Section as SectionType } from '../../types';
 import { Section } from './Section';
 
 interface ExerciseMenuProps {
     exercises: Exercise[];
-    sections: string[];
-    onAddExercise: (name: string, section: string) => void;
-    onAddSection: (section: string) => void;
+    sections: SectionType[];
+    groups: string[];
+    setGroups: (groups: string[] | ((prev: string[]) => string[])) => void;
+    onAddExercise: (name: string, section: string, group?: string) => void;
+    onAddSection: (sectionName: string, group: string) => void;
     onAddToPlan: (exercise: Exercise) => void;
     onDeleteExercise: (id: string) => void;
-    onDeleteSection: (section: string) => void;
+    onDeleteSection: (sectionName: string, group: string) => void;
+    onDeleteGroup: (group: string) => void;
     onMoveExerciseToSection: (exerciseId: string, newSection: string) => void;
     onRenameExercise: (exerciseId: string, newName: string) => void;
     onUpdateExercise: (exerciseId: string, updates: Partial<Exercise>) => void;
-    onRenameSection: (oldName: string, newName: string) => void;
+    onRenameSection: (oldName: string, newName: string, group: string) => void;
     isEditMode: boolean;
     onEditModeChange: (isEditMode: boolean) => void;
     isVisible: boolean;
@@ -22,14 +25,19 @@ interface ExerciseMenuProps {
     onImportExercises: (file: File) => void;
 }
 
+const DEFAULT_GROUP = 'General';
+
 export default function ExerciseMenu({
     exercises,
     sections,
+    groups,
+    setGroups,
     onAddExercise,
     onAddSection,
     onAddToPlan,
     onDeleteExercise,
     onDeleteSection,
+    onDeleteGroup,
     onMoveExerciseToSection,
     onRenameExercise,
     onUpdateExercise,
@@ -42,6 +50,31 @@ export default function ExerciseMenu({
 }: ExerciseMenuProps) {
     const [newSection, setNewSection] = useState('');
     const [isAddingSection, setIsAddingSection] = useState(false);
+    const [selectedGroup, setSelectedGroup] = useState<string>(DEFAULT_GROUP);
+    const [newGroup, setNewGroup] = useState('');
+    const [isAddingGroup, setIsAddingGroup] = useState(false);
+
+    // Asegurarse de que el grupo seleccionado existe
+    useEffect(() => {
+        if (groups.length > 0 && !groups.includes(selectedGroup)) {
+            setSelectedGroup(groups[0]);
+        } else if (groups.length === 0 && selectedGroup !== '') {
+            setSelectedGroup('');
+        }
+    }, [groups, selectedGroup]);
+
+    // Filtrar ejercicios y secciones por grupo seleccionado
+    const filteredExercises = useMemo(() => {
+        if (!selectedGroup) return [];
+        return exercises.filter(ex => {
+            const exerciseGroup = ex.group || DEFAULT_GROUP;
+            return exerciseGroup === selectedGroup;
+        });
+    }, [exercises, selectedGroup]);
+
+    const filteredSections = useMemo(() => {
+        return sections.filter(s => s.group === selectedGroup);
+    }, [sections, selectedGroup]);
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -55,11 +88,23 @@ export default function ExerciseMenu({
     const handleAddSectionSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (newSection.trim()) {
-            onAddSection(newSection.trim());
+            onAddSection(newSection.trim(), selectedGroup);
             setNewSection('');
             setIsAddingSection(false);
         }
     };
+
+    const handleAddGroupSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (newGroup.trim() && !groups.includes(newGroup.trim())) {
+            setGroups([...groups, newGroup.trim()]);
+            setSelectedGroup(newGroup.trim());
+            setNewGroup('');
+            setIsAddingGroup(false);
+        }
+    };
+
+
 
     return (
         <div className={`
@@ -111,6 +156,64 @@ export default function ExerciseMenu({
                     </div>
                 </div>
 
+                {/* Selector de grupos */}
+                <div className="mb-3">
+                    <div className="flex gap-2 items-center">
+                        <Tag size={16} className="text-pink-600" />
+                        <select
+                            value={selectedGroup}
+                            onChange={(e) => setSelectedGroup(e.target.value)}
+                            className="flex-1 px-3 py-2 text-sm rounded-lg border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-white text-pink-900 font-medium"
+                        >
+                            {groups.map((group: string) => (
+                                <option key={group} value={group}>
+                                    {group}
+                                </option>
+                            ))}
+                        </select>
+
+                        {isEditMode && (
+                            <div className="flex gap-1">
+                                <button
+                                    onClick={() => setIsAddingGroup(!isAddingGroup)}
+                                    className="p-2 text-pink-600 hover:text-pink-700 bg-pink-50 hover:bg-pink-100 rounded-lg transition-all border border-pink-200"
+                                    title="Añadir nuevo grupo"
+                                >
+                                    <Plus size={16} />
+                                </button>
+                                <button
+                                    onClick={() => onDeleteGroup(selectedGroup)}
+                                    className="p-2 text-red-500 hover:text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-all border border-red-200"
+                                    title={`Eliminar grupo "${selectedGroup}"`}
+                                >
+                                    <Trash2 size={16} />
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    {isAddingGroup && (
+                        <form onSubmit={handleAddGroupSubmit} className="mt-2 p-2 bg-pink-50 rounded-lg border border-pink-100">
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={newGroup}
+                                    onChange={(e) => setNewGroup(e.target.value)}
+                                    placeholder="Ej: Ballet, Contemporáneo..."
+                                    className="flex-1 min-w-0 px-2 py-1 text-xs rounded border border-pink-200 focus:outline-none focus:ring-1 focus:ring-pink-400 bg-white"
+                                    autoFocus
+                                />
+                                <button
+                                    type="submit"
+                                    className="p-1 bg-pink-500 text-white rounded hover:bg-pink-600"
+                                >
+                                    <Plus className="w-3 h-3" />
+                                </button>
+                            </div>
+                        </form>
+                    )}
+                </div>
+
                 {isEditMode && (
                     <button
                         onClick={() => setIsAddingSection(!isAddingSection)}
@@ -145,33 +248,35 @@ export default function ExerciseMenu({
                     </form>
                 )}
 
-                {sections.map(section => (
+                {filteredSections.map(section => (
                     <Section
-                        key={section}
-                        title={section}
-                        exercises={exercises.filter(e => e.section === section)}
+                        key={`${section.group}-${section.name}`}
+                        title={section.name}
+                        exercises={filteredExercises.filter(e => e.section === section.name)}
                         onAddExercise={onAddExercise}
                         onAddToPlan={onAddToPlan}
                         onDeleteExercise={onDeleteExercise}
-                        onDeleteSection={onDeleteSection}
-                        onRenameSection={onRenameSection}
+                        onDeleteSection={(sectionName) => onDeleteSection(sectionName, section.group)}
+                        onRenameSection={(oldName, newName) => onRenameSection(oldName, newName, section.group)}
                         onRenameExercise={onRenameExercise}
                         onUpdateExercise={onUpdateExercise}
                         isEditMode={isEditMode}
+                        currentGroup={selectedGroup}
                     />
                 ))}
 
                 {/* Handle uncategorized exercises if any */}
-                {exercises.some(e => !sections.includes(e.section)) && (
+                {filteredExercises.some(e => !filteredSections.some(s => s.name === e.section)) && (
                     <Section
                         title="Sin Categoría"
-                        exercises={exercises.filter(e => !sections.includes(e.section))}
+                        exercises={filteredExercises.filter(e => !filteredSections.some(s => s.name === e.section))}
                         onAddExercise={onAddExercise}
                         onAddToPlan={onAddToPlan}
                         onDeleteExercise={onDeleteExercise}
                         onRenameExercise={onRenameExercise}
                         onUpdateExercise={onUpdateExercise}
                         isEditMode={isEditMode}
+                        currentGroup={selectedGroup}
                     />
                 )}
                 <div className="md:hidden h-18"></div>

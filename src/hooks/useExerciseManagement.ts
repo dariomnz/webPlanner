@@ -1,12 +1,12 @@
 import { useCallback } from 'react';
-import { Exercise, PlannedExercise } from '../types';
+import { Exercise, PlannedExercise, Section } from '../types';
 import { createExercise, createPlannedExercise } from '../utils/exerciseHelpers';
 
 interface UseExerciseManagementProps {
     exercises: Exercise[];
     setExercises: (exercises: Exercise[] | ((prev: Exercise[]) => Exercise[])) => void;
-    sections: string[];
-    setSections: (sections: string[] | ((prev: string[]) => string[])) => void;
+    sections: Section[];
+    setSections: (sections: Section[] | ((prev: Section[]) => Section[])) => void;
     plannedExercises: PlannedExercise[];
     setPlannedExercises: (exercises: PlannedExercise[] | ((prev: PlannedExercise[]) => PlannedExercise[])) => void;
     isEditMode: boolean;
@@ -22,14 +22,17 @@ export function useExerciseManagement({
     isEditMode,
 }: UseExerciseManagementProps) {
 
-    const handleAddExercise = useCallback((name: string, section: string) => {
+    const handleAddExercise = useCallback((name: string, section: string, group?: string) => {
         const newExercise = createExercise(name, section);
+        if (group) {
+            newExercise.group = group;
+        }
         setExercises([...exercises, newExercise]);
     }, [exercises, setExercises]);
 
-    const handleAddSection = useCallback((section: string) => {
-        if (!sections.includes(section)) {
-            setSections([...sections, section]);
+    const handleAddSection = useCallback((sectionName: string, group: string) => {
+        if (!sections.some(s => s.name === sectionName && s.group === group)) {
+            setSections([...sections, { name: sectionName, group }]);
         }
     }, [sections, setSections]);
 
@@ -41,8 +44,8 @@ export function useExerciseManagement({
         setExercises(exercises.filter(ex => ex.id !== id));
     }, [exercises, setExercises]);
 
-    const handleDeleteSection = useCallback((section: string) => {
-        setSections(sections.filter(s => s !== section));
+    const handleDeleteSection = useCallback((sectionName: string, group: string) => {
+        setSections(sections.filter(s => !(s.name === sectionName && s.group === group)));
     }, [sections, setSections]);
 
     const handleMoveExerciseToSection = useCallback((exerciseId: string, newSection: string) => {
@@ -63,8 +66,10 @@ export function useExerciseManagement({
         ));
     }, [exercises, setExercises]);
 
-    const handleRenameSection = useCallback((oldName: string, newName: string) => {
-        setSections(sections.map(s => s === oldName ? newName : s));
+    const handleRenameSection = useCallback((oldName: string, newName: string, group: string) => {
+        setSections(sections.map(s =>
+            (s.name === oldName && s.group === group) ? { ...s, name: newName } : s
+        ));
         setExercises(exercises.map(ex =>
             ex.section === oldName ? { ...ex, section: newName } : ex
         ));
