@@ -10,14 +10,14 @@ export function useMenuVisibility({ isEditMode, activeId, activeItemSource }: Us
     const [isMenuVisible, setIsMenuVisible] = useState<boolean>(false);
 
     const toggleMenu = useCallback(() => {
-        console.log('toggle menu');
+        // console.log('toggle menu');
         setIsMenuVisible(!isMenuVisible);
     }, [isMenuVisible]);
 
     // Explicit method to show menu (to be called from drag end)
     const showMenuOnMobile = useCallback(() => {
         if (window.innerWidth < 768 && !isEditMode) {
-            console.log('show menu');
+            // console.log('show menu');
             setIsMenuVisible(true);
         }
     }, [isEditMode]);
@@ -25,7 +25,7 @@ export function useMenuVisibility({ isEditMode, activeId, activeItemSource }: Us
     // Hide menu on mobile when dragging starts (only in planning mode)
     useEffect(() => {
         if (window.innerWidth < 768 && !isEditMode && activeId && activeItemSource === 'menu') {
-            console.log('hide menu');
+            // console.log('hide menu');
             setIsMenuVisible(false);
         }
     }, [activeId, activeItemSource, isEditMode]);
