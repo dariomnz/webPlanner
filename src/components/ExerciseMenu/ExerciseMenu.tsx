@@ -8,7 +8,7 @@ interface ExerciseMenuProps {
     sections: SectionType[];
     groups: string[];
     setGroups: (groups: string[] | ((prev: string[]) => string[])) => void;
-    onAddExercise: (name: string, section: string, group?: string) => void;
+    onAddExercise: (name: string, section: string, group: string) => void;
     onAddSection: (sectionName: string, group: string) => void;
     onAddToPlan: (exercise: Exercise) => void;
     onDeleteExercise: (id: string) => void;
@@ -157,7 +157,7 @@ export default function ExerciseMenu({
                 </div>
 
                 {/* Selector de grupos */}
-                <div className="mb-3">
+                <div>
                     <div className="flex gap-2 items-center">
                         <Tag size={16} className="text-pink-600" />
                         <select
@@ -171,7 +171,6 @@ export default function ExerciseMenu({
                                 </option>
                             ))}
                         </select>
-
                         {isEditMode && (
                             <div className="flex gap-1">
                                 <button
@@ -215,13 +214,16 @@ export default function ExerciseMenu({
                 </div>
 
                 {isEditMode && (
-                    <button
-                        onClick={() => setIsAddingSection(!isAddingSection)}
-                        className="w-full flex items-center justify-center gap-2 text-xs font-medium text-pink-600 hover:text-pink-800 bg-white px-3 py-2 rounded-lg border border-pink-200 shadow-sm hover:shadow transition-all"
-                    >
-                        <FolderPlus className="w-3 h-3" />
-                        Nueva Sección
-                    </button>
+                    <div>
+                        <div className="mb-3"></div>
+                        <button
+                            onClick={() => setIsAddingSection(!isAddingSection)}
+                            className="w-full flex items-center justify-center gap-2 text-xs font-medium text-pink-600 hover:text-pink-800 bg-white px-3 py-2 rounded-lg border border-pink-200 shadow-sm hover:shadow transition-all"
+                        >
+                            <FolderPlus className="w-3 h-3" />
+                            Nueva Sección
+                        </button>
+                    </div>
                 )}
             </div>
 
@@ -265,20 +267,7 @@ export default function ExerciseMenu({
                     />
                 ))}
 
-                {/* Handle uncategorized exercises if any */}
-                {filteredExercises.some(e => !filteredSections.some(s => s.name === e.section)) && (
-                    <Section
-                        title="Sin Categoría"
-                        exercises={filteredExercises.filter(e => !filteredSections.some(s => s.name === e.section))}
-                        onAddExercise={onAddExercise}
-                        onAddToPlan={onAddToPlan}
-                        onDeleteExercise={onDeleteExercise}
-                        onRenameExercise={onRenameExercise}
-                        onUpdateExercise={onUpdateExercise}
-                        isEditMode={isEditMode}
-                        currentGroup={selectedGroup}
-                    />
-                )}
+
                 <div className="md:hidden h-18"></div>
             </div>
         </div>

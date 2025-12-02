@@ -131,7 +131,7 @@ function App() {
     const confirmDeleteGroup = () => {
         if (groupToDelete) {
             // Eliminar ejercicios del grupo (manejando ejercicios sin grupo como 'General')
-            const newExercises = exercises.filter(ex => (ex.group || 'General') !== groupToDelete);
+            const newExercises = exercises.filter(ex => ex.group !== groupToDelete);
             setExercises(newExercises);
 
             // Eliminar secciones del grupo
@@ -316,7 +316,7 @@ function App() {
                     onClose={() => setSectionToDelete(null)}
                     onConfirm={confirmDeleteSection}
                     title="¿Eliminar sección?"
-                    message={`¿Estás seguro de que quieres eliminar la sección "${sectionToDelete?.name}"? Los ejercicios de esta sección no se borrarán, pasarán a estar "Sin Categoría".`}
+                    message={`¿Estás seguro de que quieres eliminar la sección "${sectionToDelete?.name}"? SE BORRARÁN TODOS LOS EJERCICIOS de esta sección.`}
                 />
 
                 <ConfirmationModal

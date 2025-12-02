@@ -150,6 +150,7 @@ export const importClassPlan = (file: File): Promise<{ classTitle: string, plann
                         id: `imported-${Date.now()}-${index}`,
                         name: name,
                         section: section,
+                        group: 'Imported',
                         description: description || undefined
                     };
                 });

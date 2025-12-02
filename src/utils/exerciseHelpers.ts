@@ -3,11 +3,12 @@ import { Exercise, PlannedExercise } from '../types';
 /**
  * Creates a new exercise with a unique ID
  */
-export function createExercise(name: string, section: string, description?: string): Exercise {
+export function createExercise(name: string, section: string, group: string, description?: string): Exercise {
     return {
         id: Date.now().toString(),
         name,
         section,
+        group,
         description,
     };
 }
@@ -21,6 +22,7 @@ export function createPlannedExercise(exercise: Exercise): PlannedExercise {
         name: exercise.name,
         section: exercise.section,
         description: exercise.description,
+        group: exercise.group,
     };
 }
 
@@ -31,12 +33,14 @@ export function createPreviewExercise(
     id: string,
     name: string,
     section: string,
+    group: string,
     description?: string
 ): PlannedExercise {
     return {
         id: `${id}-preview`,
         name,
         section,
+        group,
         description,
         isPreview: true,
     };
@@ -60,12 +64,7 @@ export function filterExercisesBySection(exercises: Exercise[], section: string)
     return exercises.filter(e => e.section === section);
 }
 
-/**
- * Gets uncategorized exercises (exercises not in any section)
- */
-export function getUncategorizedExercises(exercises: Exercise[], sections: string[]): Exercise[] {
-    return exercises.filter(e => !sections.includes(e.section));
-}
+
 
 /**
  * Updates an exercise with partial data

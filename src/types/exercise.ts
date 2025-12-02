@@ -3,7 +3,7 @@ export interface Exercise {
     name: string;
     section: string;
     description?: string;
-    group?: string;
+    group: string;
 }
 
 export interface Section {

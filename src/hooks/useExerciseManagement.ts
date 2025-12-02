@@ -22,11 +22,8 @@ export function useExerciseManagement({
     isEditMode,
 }: UseExerciseManagementProps) {
 
-    const handleAddExercise = useCallback((name: string, section: string, group?: string) => {
-        const newExercise = createExercise(name, section);
-        if (group) {
-            newExercise.group = group;
-        }
+    const handleAddExercise = useCallback((name: string, section: string, group: string) => {
+        const newExercise = createExercise(name, section, group);
         setExercises([...exercises, newExercise]);
     }, [exercises, setExercises]);
 
@@ -46,7 +43,8 @@ export function useExerciseManagement({
 
     const handleDeleteSection = useCallback((sectionName: string, group: string) => {
         setSections(sections.filter(s => !(s.name === sectionName && s.group === group)));
-    }, [sections, setSections]);
+        setExercises(exercises.filter(ex => !(ex.section === sectionName && ex.group === group)));
+    }, [sections, setSections, exercises, setExercises]);
 
     const handleMoveExerciseToSection = useCallback((exerciseId: string, newSection: string) => {
         setExercises(exercises.map(ex =>

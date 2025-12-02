@@ -7,7 +7,7 @@ import { DraggableExercise } from './DraggableExercise';
 interface SectionProps {
     title: string;
     exercises: Exercise[];
-    onAddExercise: (name: string, section: string, group?: string) => void;
+    onAddExercise: (name: string, section: string, group: string) => void;
     onAddToPlan: (exercise: Exercise) => void;
     onDeleteExercise: (id: string) => void;
     onDeleteSection?: (section: string) => void;
@@ -15,7 +15,7 @@ interface SectionProps {
     onRenameExercise: (id: string, newName: string) => void;
     onUpdateExercise: (id: string, updates: Partial<Exercise>) => void;
     isEditMode: boolean;
-    currentGroup?: string;
+    currentGroup: string;
 }
 
 export function Section({
