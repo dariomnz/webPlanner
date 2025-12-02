@@ -7,6 +7,8 @@ interface UseExerciseManagementProps {
     setExercises: (exercises: Exercise[] | ((prev: Exercise[]) => Exercise[])) => void;
     sections: Section[];
     setSections: (sections: Section[] | ((prev: Section[]) => Section[])) => void;
+    groups: string[];
+    setGroups: (groups: string[] | ((prev: string[]) => string[])) => void;
     plannedExercises: PlannedExercise[];
     setPlannedExercises: (exercises: PlannedExercise[] | ((prev: PlannedExercise[]) => PlannedExercise[])) => void;
     isEditMode: boolean;
@@ -17,6 +19,8 @@ export function useExerciseManagement({
     setExercises,
     sections,
     setSections,
+    groups,
+    setGroups,
     plannedExercises,
     setPlannedExercises,
     isEditMode,
@@ -33,6 +37,12 @@ export function useExerciseManagement({
         }
     }, [sections, setSections]);
 
+    const handleAddGroup = useCallback((groupName: string) => {
+        if (!groups.includes(groupName)) {
+            setGroups([...groups, groupName]);
+        }
+    }, [groups, setGroups]);
+
     const handleRemoveExercise = useCallback((id: string) => {
         setPlannedExercises(plannedExercises.filter((ex) => ex.id !== id));
     }, [plannedExercises, setPlannedExercises]);
@@ -45,6 +55,15 @@ export function useExerciseManagement({
         setSections(sections.filter(s => !(s.name === sectionName && s.group === group)));
         setExercises(exercises.filter(ex => !(ex.section === sectionName && ex.group === group)));
     }, [sections, setSections, exercises, setExercises]);
+
+    const handleDeleteGroup = useCallback((groupName: string) => {
+        // Eliminar ejercicios del grupo
+        setExercises(exercises.filter(ex => ex.group !== groupName));
+        // Eliminar secciones del grupo
+        setSections(sections.filter(s => s.group !== groupName));
+        // Eliminar el grupo
+        setGroups(groups.filter(g => g !== groupName));
+    }, [exercises, setExercises, sections, setSections, groups, setGroups]);
 
     const handleMoveExerciseToSection = useCallback((exerciseId: string, newSection: string) => {
         setExercises(exercises.map(ex =>
@@ -87,9 +106,11 @@ export function useExerciseManagement({
     return {
         handleAddExercise,
         handleAddSection,
+        handleAddGroup,
         handleRemoveExercise,
         handleDeleteExerciseFromMenu,
         handleDeleteSection,
+        handleDeleteGroup,
         handleMoveExerciseToSection,
         handleRenameExercise,
         handleUpdateExercise,

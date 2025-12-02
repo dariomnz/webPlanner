@@ -1,13 +1,15 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Plus, FolderPlus, Calendar, Pencil, Download, Upload, Tag, Trash2, ChevronDown } from 'lucide-react';
+import { Calendar, Pencil, Download, Upload } from 'lucide-react';
 import { Exercise, Section as SectionType } from '../../types';
 import { Section } from './Section';
+import { GroupSelector } from './GroupSelector';
+import { SectionManager } from './SectionManager';
 
 interface ExerciseMenuProps {
     exercises: Exercise[];
     sections: SectionType[];
     groups: string[];
-    setGroups: (groups: string[] | ((prev: string[]) => string[])) => void;
+    onAddGroup: (group: string) => void;
     onAddExercise: (name: string, section: string, group: string) => void;
     onAddSection: (sectionName: string, group: string) => void;
     onAddToPlan: (exercise: Exercise) => void;
@@ -31,7 +33,7 @@ export default function ExerciseMenu({
     exercises,
     sections,
     groups,
-    setGroups,
+    onAddGroup,
     onAddExercise,
     onAddSection,
     onAddToPlan,
@@ -48,11 +50,7 @@ export default function ExerciseMenu({
     onExportExercises,
     onImportExercises
 }: ExerciseMenuProps) {
-    const [newSection, setNewSection] = useState('');
-    const [isAddingSection, setIsAddingSection] = useState(false);
     const [selectedGroup, setSelectedGroup] = useState<string>(DEFAULT_GROUP);
-    const [newGroup, setNewGroup] = useState('');
-    const [isAddingGroup, setIsAddingGroup] = useState(false);
 
     // Asegurarse de que el grupo seleccionado existe
     useEffect(() => {
@@ -85,23 +83,9 @@ export default function ExerciseMenu({
         event.target.value = '';
     };
 
-    const handleAddSectionSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (newSection.trim()) {
-            onAddSection(newSection.trim(), selectedGroup);
-            setNewSection('');
-            setIsAddingSection(false);
-        }
-    };
-
-    const handleAddGroupSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (newGroup.trim() && !groups.includes(newGroup.trim())) {
-            setGroups([...groups, newGroup.trim()]);
-            setSelectedGroup(newGroup.trim());
-            setNewGroup('');
-            setIsAddingGroup(false);
-        }
+    const handleAddGroup = (groupName: string) => {
+        onAddGroup(groupName);
+        setSelectedGroup(groupName);
     };
 
 
@@ -157,103 +141,24 @@ export default function ExerciseMenu({
                 </div>
 
                 {/* Selector de grupos */}
-                <div>
-                    <div className="flex gap-2 items-center">
-                        <Tag size={16} className="text-pink-600" />
-                        <div className="relative flex-1">
-                            <select
-                                value={selectedGroup}
-                                onChange={(e) => setSelectedGroup(e.target.value)}
-                                className="w-full appearance-none px-3 py-2 pr-8 text-sm rounded-lg border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-white text-pink-900 font-medium shadow-sm hover:border-pink-300 transition-colors cursor-pointer"
-                            >
-                                {groups.map((group: string) => (
-                                    <option key={group} value={group}>
-                                        {group}
-                                    </option>
-                                ))}
-                            </select>
-                            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-pink-400 pointer-events-none" size={16} />
-                        </div>
-                        
-                        {isEditMode && (
-                            <div className="flex gap-1">
-                                <button
-                                    onClick={() => setIsAddingGroup(!isAddingGroup)}
-                                    className="p-2 text-pink-600 hover:text-pink-700 bg-pink-50 hover:bg-pink-100 rounded-lg transition-all border border-pink-200"
-                                    title="Añadir nuevo grupo"
-                                >
-                                    <Plus size={16} />
-                                </button>
-                                <button
-                                    onClick={() => onDeleteGroup(selectedGroup)}
-                                    className="p-2 text-red-500 hover:text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-all border border-red-200"
-                                    title={`Eliminar grupo "${selectedGroup}"`}
-                                >
-                                    <Trash2 size={16} />
-                                </button>
-                            </div>
-                        )}
-                    </div>
+                <GroupSelector
+                    groups={groups}
+                    selectedGroup={selectedGroup}
+                    onSelectGroup={setSelectedGroup}
+                    onAddGroup={handleAddGroup}
+                    onDeleteGroup={onDeleteGroup}
+                    isEditMode={isEditMode}
+                />
 
-                    {isAddingGroup && (
-                        <form onSubmit={handleAddGroupSubmit} className="mt-2 p-2 bg-pink-50 rounded-lg border border-pink-100">
-                            <div className="flex gap-2">
-                                <input
-                                    type="text"
-                                    value={newGroup}
-                                    onChange={(e) => setNewGroup(e.target.value)}
-                                    placeholder="Ej: Ballet, Contemporáneo..."
-                                    className="flex-1 min-w-0 px-2 py-1 text-xs rounded border border-pink-200 focus:outline-none focus:ring-1 focus:ring-pink-400 bg-white"
-                                    autoFocus
-                                />
-                                <button
-                                    type="submit"
-                                    className="p-1 bg-pink-500 text-white rounded hover:bg-pink-600"
-                                >
-                                    <Plus className="w-3 h-3" />
-                                </button>
-                            </div>
-                        </form>
-                    )}
-                </div>
-
-                {isEditMode && (
-                    <div>
-                        <div className="mb-3"></div>
-                        <button
-                            onClick={() => setIsAddingSection(!isAddingSection)}
-                            className="w-full flex items-center justify-center gap-2 text-xs font-medium text-pink-600 hover:text-pink-800 bg-white px-3 py-2 rounded-lg border border-pink-200 shadow-sm hover:shadow transition-all"
-                        >
-                            <FolderPlus className="w-3 h-3" />
-                            Nueva Sección
-                        </button>
-                    </div>
-                )}
+                {/* Gestor de secciones */}
+                <SectionManager
+                    selectedGroup={selectedGroup}
+                    onAddSection={onAddSection}
+                    isEditMode={isEditMode}
+                />
             </div>
 
             <div className="flex-1 overflow-y-auto p-4">
-                {isAddingSection && (
-                    <form onSubmit={handleAddSectionSubmit} className="mb-6 p-3 bg-pink-50 rounded-lg border border-pink-100">
-                        <label className="block text-xs font-medium text-pink-800 mb-1">Nombre de la sección</label>
-                        <div className="flex gap-2">
-                            <input
-                                type="text"
-                                value={newSection}
-                                onChange={(e) => setNewSection(e.target.value)}
-                                placeholder="Ej: Brazos, Core..."
-                                className="flex-1 min-w-0 px-2 py-1 text-sm rounded border border-pink-200 focus:outline-none focus:ring-1 focus:ring-pink-400 bg-white"
-                                autoFocus
-                            />
-                            <button
-                                type="submit"
-                                className="p-1 bg-pink-500 text-white rounded hover:bg-pink-600"
-                            >
-                                <Plus className="w-4 h-4" />
-                            </button>
-                        </div>
-                    </form>
-                )}
-
                 {filteredSections.map(section => (
                     <Section
                         key={`${section.group}-${section.name}`}

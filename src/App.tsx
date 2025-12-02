@@ -69,6 +69,8 @@ function App() {
         setExercises,
         sections,
         setSections,
+        groups,
+        setGroups,
         plannedExercises,
         setPlannedExercises,
         isEditMode,
@@ -130,18 +132,7 @@ function App() {
 
     const confirmDeleteGroup = () => {
         if (groupToDelete) {
-            // Eliminar ejercicios del grupo (manejando ejercicios sin grupo como 'General')
-            const newExercises = exercises.filter(ex => ex.group !== groupToDelete);
-            setExercises(newExercises);
-
-            // Eliminar secciones del grupo
-            const newSections = sections.filter(s => s.group !== groupToDelete);
-            setSections(newSections);
-
-            // Eliminar el grupo
-            const newGroups = groups.filter(g => g !== groupToDelete);
-            setGroups(newGroups);
-
+            exerciseManagement.handleDeleteGroup(groupToDelete);
             setGroupToDelete(null);
         }
     };
@@ -240,7 +231,7 @@ function App() {
                     exercises={exercises}
                     sections={sections}
                     groups={groups}
-                    setGroups={setGroups}
+                    onAddGroup={exerciseManagement.handleAddGroup}
                     onAddExercise={exerciseManagement.handleAddExercise}
                     onAddSection={exerciseManagement.handleAddSection}
                     onAddToPlan={exerciseManagement.handleAddToPlan}
