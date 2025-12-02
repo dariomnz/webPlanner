@@ -35,18 +35,26 @@ export function GroupSelector({
             <div className="flex gap-2 items-center">
                 <Tag size={16} className="text-pink-600" />
                 <div className="relative flex-1">
-                    <select
-                        value={selectedGroup}
-                        onChange={(e) => onSelectGroup(e.target.value)}
-                        className="w-full appearance-none px-3 py-2 pr-8 text-sm rounded-lg border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-white text-pink-900 font-medium shadow-sm hover:border-pink-300 transition-colors cursor-pointer"
-                    >
-                        {groups.map((group: string) => (
-                            <option key={group} value={group}>
-                                {group}
-                            </option>
-                        ))}
-                    </select>
-                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-pink-400 pointer-events-none" size={16} />
+                    {groups.length > 0 ? (
+                        <>
+                            <select
+                                value={selectedGroup}
+                                onChange={(e) => onSelectGroup(e.target.value)}
+                                className="w-full appearance-none px-3 py-2 pr-8 text-sm rounded-lg border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-white text-pink-900 font-medium shadow-sm hover:border-pink-300 transition-colors cursor-pointer"
+                            >
+                                {groups.map((group: string) => (
+                                    <option key={group} value={group}>
+                                        {group}
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-pink-400 pointer-events-none" size={16} />
+                        </>
+                    ) : (
+                        <div className="w-full px-3 py-2 text-sm rounded-lg border border-pink-200 bg-gray-50 text-gray-400 italic">
+                            No hay grupos
+                        </div>
+                    )}
                 </div>
 
                 {isEditMode && (
@@ -58,13 +66,15 @@ export function GroupSelector({
                         >
                             <Plus size={16} />
                         </button>
-                        <button
-                            onClick={() => onDeleteGroup(selectedGroup)}
-                            className="p-2 text-red-500 hover:text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-all border border-red-200"
-                            title={`Eliminar grupo "${selectedGroup}"`}
-                        >
-                            <Trash2 size={16} />
-                        </button>
+                        {groups.length > 0 && (
+                            <button
+                                onClick={() => onDeleteGroup(selectedGroup)}
+                                className="p-2 text-red-500 hover:text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-all border border-red-200"
+                                title={`Eliminar grupo "${selectedGroup}"`}
+                            >
+                                <Trash2 size={16} />
+                            </button>
+                        )}
                     </div>
                 )}
             </div>

@@ -176,6 +176,9 @@ export default function ExerciseMenu({
                     />
                 ))}
 
+                {filteredSections.length === 0 && (
+                    <div className="text-xs text-gray-400 italic py-1">No hay secciones</div>
+                )}
 
                 <div className="md:hidden h-18"></div>
             </div>
