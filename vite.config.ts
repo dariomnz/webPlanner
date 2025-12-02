@@ -9,5 +9,10 @@ export default defineConfig({
     server: {
         host: true, // Expone el servidor a la red local
         port: 5173, // Puerto por defecto de Vite
+    },
+    test: {
+        globals: true,
+        environment: 'jsdom',
+        setupFiles: './src/test/setup.ts',
     }
 })
