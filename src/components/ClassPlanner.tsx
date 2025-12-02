@@ -15,7 +15,7 @@ interface ClassPlannerProps {
 
 export default function ClassPlanner({ plannedExercises, onRemoveExercise, onClearAll, classTitle, onTitleChange, onExport }: ClassPlannerProps) {
     return (
-        <div className="flex-1 h-screen bg-beige-50 p-8 overflow-y-auto">
+        <div className="flex-1 h-full bg-beige-50 p-8 overflow-y-auto">
             <div className="max-w-3xl mx-auto">
                 <header className="mb-8 text-center relative">
 

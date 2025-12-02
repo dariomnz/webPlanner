@@ -63,7 +63,7 @@ export default function ExerciseMenu({
 
     return (
         <div className={`
-            w-80 bg-white border-r border-pink-200 h-screen flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-10
+            w-80 bg-white border-r border-pink-200 h-full flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-10
             md:relative md:translate-x-0
             fixed transition-transform duration-300 ease-in-out
             ${isVisible ? 'translate-x-0' : '-translate-x-full'}
@@ -174,7 +174,7 @@ export default function ExerciseMenu({
                         isEditMode={isEditMode}
                     />
                 )}
-                <div className="h-24"></div>
+                <div className="md:hidden h-18"></div>
             </div>
         </div>
     );

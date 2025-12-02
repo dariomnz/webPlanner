@@ -171,7 +171,7 @@ function App() {
             onDragEnd={dragAndDrop.handleDragEnd}
             onDragCancel={dragAndDrop.handleDragCancel}
         >
-            <div className="flex flex-col h-dvh w-screen font-sans text-gray-900">
+            <div className="flex flex-col md:flex-row h-dvh w-screen font-sans text-gray-900 overflow-hidden">
                 <ExerciseMenu
                     exercises={exercises}
                     sections={sections}
