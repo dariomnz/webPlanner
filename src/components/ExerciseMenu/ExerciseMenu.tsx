@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Plus, FolderPlus, Calendar, Pencil, Download, Upload, Tag, Trash2 } from 'lucide-react';
+import { Plus, FolderPlus, Calendar, Pencil, Download, Upload, Tag, Trash2, ChevronDown } from 'lucide-react';
 import { Exercise, Section as SectionType } from '../../types';
 import { Section } from './Section';
 
@@ -160,17 +160,21 @@ export default function ExerciseMenu({
                 <div>
                     <div className="flex gap-2 items-center">
                         <Tag size={16} className="text-pink-600" />
-                        <select
-                            value={selectedGroup}
-                            onChange={(e) => setSelectedGroup(e.target.value)}
-                            className="flex-1 px-3 py-2 text-sm rounded-lg border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-white text-pink-900 font-medium"
-                        >
-                            {groups.map((group: string) => (
-                                <option key={group} value={group}>
-                                    {group}
-                                </option>
-                            ))}
-                        </select>
+                        <div className="relative flex-1">
+                            <select
+                                value={selectedGroup}
+                                onChange={(e) => setSelectedGroup(e.target.value)}
+                                className="w-full appearance-none px-3 py-2 pr-8 text-sm rounded-lg border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent bg-white text-pink-900 font-medium shadow-sm hover:border-pink-300 transition-colors cursor-pointer"
+                            >
+                                {groups.map((group: string) => (
+                                    <option key={group} value={group}>
+                                        {group}
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-pink-400 pointer-events-none" size={16} />
+                        </div>
+                        
                         {isEditMode && (
                             <div className="flex gap-1">
                                 <button
