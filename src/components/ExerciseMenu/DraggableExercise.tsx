@@ -34,6 +34,13 @@ export function DraggableExercise({
             textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
         }
     };
+
+    // Sync local state with exercise props when they change
+    useEffect(() => {
+        setNewName(name);
+        setNewDescription(description || '');
+    }, [name, description]);
+
     // Auto-resize textarea
     useEffect(() => {
         updateDescriptionsize();
@@ -73,7 +80,8 @@ export function DraggableExercise({
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter') {
+        // If is the textarea the enter not handle the enter key to submit 
+        if (e.key === 'Enter' && e.target !== textareaRef.current) {
             handleRenameSubmit();
         } else if (e.key === 'Escape') {
             setIsRenaming(false);
@@ -117,6 +125,7 @@ export function DraggableExercise({
                             value={newDescription}
                             onChange={(e) => setNewDescription(e.target.value)}
                             onBlur={handleBlur}
+                            onKeyDown={handleKeyDown}
                             className="w-full px-1 py-0.5 text-xs border border-pink-300 rounded focus:outline-none focus:ring-1 focus:ring-pink-400 resize-none overflow-hidden"
                             onClick={(e) => e.stopPropagation()}
                             placeholder="Descripción (opcional)"

@@ -82,6 +82,7 @@ export function useDragAndDrop({
                         activeId,
                         data.name!,
                         data.section!,
+                        "irrelevant",
                         data.description
                     );
 
