@@ -105,6 +105,12 @@ export function useExerciseManagement({
         setPlannedExercises([]);
     }, [setPlannedExercises]);
 
+    const handleUpdatePlannedExercise = useCallback((id: string, updates: Partial<PlannedExercise>) => {
+        setPlannedExercises(prev => prev.map(ex =>
+            ex.id === id ? { ...ex, ...updates } : ex
+        ));
+    }, [setPlannedExercises]);
+
     return {
         handleAddExercise,
         handleAddSection,
@@ -119,5 +125,6 @@ export function useExerciseManagement({
         handleRenameSection,
         handleAddToPlan,
         handleClearAll,
+        handleUpdatePlannedExercise,
     };
 }

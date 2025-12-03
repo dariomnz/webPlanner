@@ -9,9 +9,10 @@ interface ClassPlannerListProps {
     onRemoveExercise: (id: string) => void;
     classTitle: string;
     onTitleChange: (title: string) => void;
+    onUpdateExercise: (id: string, updates: Partial<PlannedExercise>) => void;
 }
 
-export default function ClassPlannerList({ plannedExercises, onRemoveExercise, classTitle, onTitleChange }: ClassPlannerListProps) {
+export default function ClassPlannerList({ plannedExercises, onRemoveExercise, classTitle, onTitleChange, onUpdateExercise }: ClassPlannerListProps) {
     const { setNodeRef } = useDroppable({
         id: 'planner-droppable',
     });
@@ -41,6 +42,7 @@ export default function ClassPlannerList({ plannedExercises, onRemoveExercise, c
                             exercise={ex}
                             key={ex.id}
                             onRemove={onRemoveExercise}
+                            onUpdateExercise={onUpdateExercise}
                         />
                     ))
                 )}

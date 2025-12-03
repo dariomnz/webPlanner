@@ -13,9 +13,10 @@ interface ClassPlannerProps {
     onTitleChange: (title: string) => void;
     onExport: () => void;
     onImport: (file: File) => void;
+    onUpdateExercise: (id: string, updates: Partial<PlannedExercise>) => void;
 }
 
-export default function ClassPlanner({ plannedExercises, onRemoveExercise, onClearAll, classTitle, onTitleChange, onExport, onImport }: ClassPlannerProps) {
+export default function ClassPlanner({ plannedExercises, onRemoveExercise, onClearAll, classTitle, onTitleChange, onExport, onImport, onUpdateExercise }: ClassPlannerProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isLeftBallerinaSpinning, setIsLeftBallerinaSpinning] = useState(false);
     const [isRightBallerinaSpinning, setIsRightBallerinaSpinning] = useState(false);
@@ -72,6 +73,7 @@ export default function ClassPlanner({ plannedExercises, onRemoveExercise, onCle
                     onRemoveExercise={onRemoveExercise}
                     classTitle={classTitle}
                     onTitleChange={onTitleChange}
+                    onUpdateExercise={onUpdateExercise}
                 />
 
                 <input

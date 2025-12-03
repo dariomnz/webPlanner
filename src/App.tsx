@@ -260,6 +260,7 @@ function App() {
                     onTitleChange={setClassTitle}
                     onExport={handleExport}
                     onImport={handleImportClass}
+                    onUpdateExercise={exerciseManagement.handleUpdatePlannedExercise}
                 />
 
                 {/* Mobile menu toggle button */}
