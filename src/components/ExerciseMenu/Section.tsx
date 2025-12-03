@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { useDroppable } from '@dnd-kit/core';
-import { Plus, ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
+import { useDndContext } from '@dnd-kit/core';
+import { useSortable, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { Plus, ChevronDown, ChevronRight, Trash2, GripVertical } from 'lucide-react';
 import { Exercise } from '../../types';
 import { DraggableExercise } from './DraggableExercise';
 
@@ -37,10 +39,33 @@ export function Section({
     const [isRenamingSection, setIsRenamingSection] = useState(false);
     const [newSectionName, setNewSectionName] = useState(title);
 
-    const { setNodeRef, isOver } = useDroppable({
-        id: `section-${title}`,
+    const sectionId = `section-${currentGroup}-${title}`;
+
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging
+    } = useSortable({
+        id: sectionId,
+        data: {
+            type: 'section',
+            group: currentGroup,
+            name: title
+        },
         disabled: !isEditMode,
     });
+
+    const { over } = useDndContext();
+    const isOver = over?.id === sectionId;
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -75,11 +100,16 @@ export function Section({
         }
     };
 
+    const exerciseIds = exercises.map(ex => `menu-${ex.id}`);
+
     return (
-        <div className="mb-4" ref={setNodeRef}>
+        <div className="mb-4"
+            ref={setNodeRef}
+            {...attributes}
+            {...listeners}
+            style={style}>
             <div
-                className={`flex items-center justify-between p-1 cursor-pointer group transition-colors ${isOver && isEditMode ? 'bg-pink-50 rounded-lg' : ''
-                    }`}
+                className={`flex items-center justify-between p-1 cursor-pointer group transition-colors ${isOver && isEditMode ? 'bg-pink-50 rounded-lg' : ''}`}
                 onClick={() => setIsOpen(!isOpen)}
                 onDoubleClick={handleSectionDoubleClick}
             >
@@ -95,6 +125,7 @@ export function Section({
                             className="px-2 py-0.5 text-sm border border-pink-300 rounded focus:outline-none focus:ring-1 focus:ring-pink-400"
                             autoFocus
                             onClick={(e) => e.stopPropagation()}
+                            onPointerDown={(e) => e.stopPropagation()}
                         />
                     ) : (
                         <span>{title}</span>
@@ -113,6 +144,7 @@ export function Section({
                             }}
                             className="p-1 text-pink-400 hover:text-pink-600 hover:bg-pink-50 rounded group-hover:opacity-100 transition-all"
                             title="Añadir ejercicio"
+                            onPointerDown={(e) => e.stopPropagation()}
                         >
                             <Plus className="w-4 h-4" />
                         </button>
@@ -124,6 +156,7 @@ export function Section({
                                 }}
                                 className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded group-hover:opacity-100 transition-all ml-1"
                                 title="Eliminar sección"
+                                onPointerDown={(e) => e.stopPropagation()}
                             >
                                 <Trash2 className="w-4 h-4" />
                             </button>
@@ -153,17 +186,19 @@ export function Section({
                         </form>
                     )}
 
-                    {exercises.map((ex) => (
-                        <DraggableExercise
-                            key={ex.id}
-                            exercise={ex}
-                            onAdd={onAddToPlan}
-                            onDelete={onDeleteExercise}
-                            onRename={onRenameExercise}
-                            onUpdate={onUpdateExercise}
-                            isEditMode={isEditMode}
-                        />
-                    ))}
+                    <SortableContext items={exerciseIds} strategy={verticalListSortingStrategy}>
+                        {exercises.map((ex) => (
+                            <DraggableExercise
+                                key={ex.id}
+                                exercise={ex}
+                                onAdd={onAddToPlan}
+                                onDelete={onDeleteExercise}
+                                onRename={onRenameExercise}
+                                onUpdate={onUpdateExercise}
+                                isEditMode={isEditMode}
+                            />
+                        ))}
+                    </SortableContext>
                     {exercises.length === 0 && !isAdding && (
                         <div className="text-xs text-gray-400 italic py-1">No hay ejercicios</div>
                     )}

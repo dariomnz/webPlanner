@@ -111,6 +111,20 @@ export function useExerciseManagement({
         ));
     }, [setPlannedExercises]);
 
+    const handleReorderSections = useCallback((reorderedGroupSections: Section[], group: string) => {
+        setSections(prev => {
+            const otherSections = prev.filter(s => s.group !== group);
+            // We append the reordered sections. 
+            // Note: This changes the global order of sections (group blocks might move), 
+            // but since we only view one group at a time, it shouldn't matter visually.
+            return [...otherSections, ...reorderedGroupSections];
+        });
+    }, [setSections]);
+
+    const handleReorderExercises = useCallback((reorderedExercises: Exercise[]) => {
+        setExercises(reorderedExercises);
+    }, [setExercises]);
+
     return {
         handleAddExercise,
         handleAddSection,
@@ -126,5 +140,7 @@ export function useExerciseManagement({
         handleAddToPlan,
         handleClearAll,
         handleUpdatePlannedExercise,
+        handleReorderSections,
+        handleReorderExercises,
     };
 }

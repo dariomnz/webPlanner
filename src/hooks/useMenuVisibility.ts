@@ -3,7 +3,7 @@ import { useState, useCallback, useEffect } from 'react';
 interface UseMenuVisibilityProps {
     isEditMode: boolean;
     activeId: string | null;
-    activeItemSource?: 'menu' | 'planner';
+    activeItemSource?: 'menu' | 'planner' | 'section';
 }
 
 export function useMenuVisibility({ isEditMode, activeId, activeItemSource }: UseMenuVisibilityProps) {

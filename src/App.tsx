@@ -82,7 +82,7 @@ function App() {
 
     // Create a stable callback ref for showing menu
     const [activeIdForMenu, setActiveIdForMenu] = useState<string | null>(null);
-    const [activeItemSourceForMenu, setActiveItemSourceForMenu] = useState<'menu' | 'planner' | undefined>(undefined);
+    const [activeItemSourceForMenu, setActiveItemSourceForMenu] = useState<'menu' | 'planner' | 'section' | undefined>(undefined);
 
     const menuVisibility = useMenuVisibility({
         isEditMode,
@@ -94,8 +94,11 @@ function App() {
         plannedExercises,
         setPlannedExercises,
         exercises,
+        sections,
         isEditMode,
         onMoveExerciseToSection: exerciseManagement.handleMoveExerciseToSection,
+        onReorderSections: exerciseManagement.handleReorderSections,
+        onReorderExercises: exerciseManagement.handleReorderExercises,
         onDragEndShowMenu: menuVisibility.showMenuOnMobile,
     });
 

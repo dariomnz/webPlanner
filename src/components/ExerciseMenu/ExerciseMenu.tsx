@@ -5,6 +5,8 @@ import { Section } from './Section';
 import { GroupSelector } from './GroupSelector';
 import { SectionManager } from './SectionManager';
 
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+
 interface ExerciseMenuProps {
     exercises: Exercise[];
     sections: SectionType[];
@@ -73,6 +75,11 @@ export default function ExerciseMenu({
     const filteredSections = useMemo(() => {
         return sections.filter(s => s.group === selectedGroup);
     }, [sections, selectedGroup]);
+
+    const sectionIds = useMemo(() =>
+        filteredSections.map(s => `section-${s.group}-${s.name}`),
+        [filteredSections]
+    );
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -159,22 +166,24 @@ export default function ExerciseMenu({
             </div>
 
             <div className="flex-1 overflow-y-auto p-4">
-                {filteredSections.map(section => (
-                    <Section
-                        key={`${section.group}-${section.name}`}
-                        title={section.name}
-                        exercises={filteredExercises.filter(e => e.section === section.name)}
-                        onAddExercise={onAddExercise}
-                        onAddToPlan={onAddToPlan}
-                        onDeleteExercise={onDeleteExercise}
-                        onDeleteSection={(sectionName) => onDeleteSection(sectionName, section.group)}
-                        onRenameSection={(oldName, newName) => onRenameSection(oldName, newName, section.group)}
-                        onRenameExercise={onRenameExercise}
-                        onUpdateExercise={onUpdateExercise}
-                        isEditMode={isEditMode}
-                        currentGroup={selectedGroup}
-                    />
-                ))}
+                <SortableContext items={sectionIds} strategy={verticalListSortingStrategy}>
+                    {filteredSections.map(section => (
+                        <Section
+                            key={`section-${section.group}-${section.name}`}
+                            title={section.name}
+                            exercises={filteredExercises.filter(e => e.section === section.name)}
+                            onAddExercise={onAddExercise}
+                            onAddToPlan={onAddToPlan}
+                            onDeleteExercise={onDeleteExercise}
+                            onDeleteSection={(sectionName) => onDeleteSection(sectionName, section.group)}
+                            onRenameSection={(oldName, newName) => onRenameSection(oldName, newName, section.group)}
+                            onRenameExercise={onRenameExercise}
+                            onUpdateExercise={onUpdateExercise}
+                            isEditMode={isEditMode}
+                            currentGroup={selectedGroup}
+                        />
+                    ))}
+                </SortableContext>
 
                 {filteredSections.length === 0 && (
                     <div className="text-xs text-gray-400 italic py-1">No hay secciones</div>

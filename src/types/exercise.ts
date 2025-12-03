@@ -1,8 +1,9 @@
 export interface Exercise {
     id: string;
     name: string;
-    section: string;
     description?: string;
+    section: string;
+    group: string;
 }
 
 export interface Section {
@@ -16,5 +17,5 @@ export interface PlannedExercise extends Exercise {
 }
 
 export interface ActiveItem extends PlannedExercise {
-    source?: 'menu' | 'planner';
+    source?: 'menu' | 'planner' | 'section';
 }

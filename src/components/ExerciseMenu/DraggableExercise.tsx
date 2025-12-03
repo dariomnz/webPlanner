@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
-import { useDraggable } from '@dnd-kit/core';
-import { ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { ChevronDown, ChevronRight, Trash2, GripVertical } from 'lucide-react';
 import { DragData, Exercise } from '../../types';
 
 interface DraggableExerciseProps {
@@ -54,11 +55,24 @@ export function DraggableExercise({
         description: description,
     };
 
-    const { attributes, listeners, setNodeRef } = useDraggable({
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging
+    } = useSortable({
         id: `menu-${id}`,
         data: dragdata,
         disabled: isRenaming,
     });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
+    };
 
     const handleDoubleClick = (e: React.MouseEvent) => {
         if (isEditMode) {
@@ -100,6 +114,7 @@ export function DraggableExercise({
     return (
         <div
             ref={setNodeRef}
+            style={style}
             {...listeners}
             {...attributes}
             onClick={() => onAdd(exercise)}
@@ -118,6 +133,7 @@ export function DraggableExercise({
                             className="w-full px-1 py-0.5 text-sm border border-pink-300 rounded focus:outline-none focus:ring-1 focus:ring-pink-400"
                             autoFocus
                             onClick={(e) => e.stopPropagation()}
+                            onPointerDown={(e) => e.stopPropagation()}
                             placeholder="Nombre del ejercicio"
                         />
                         <textarea
@@ -128,6 +144,7 @@ export function DraggableExercise({
                             onKeyDown={handleKeyDown}
                             className="w-full px-1 py-0.5 text-xs border border-pink-300 rounded focus:outline-none focus:ring-1 focus:ring-pink-400 resize-none overflow-hidden"
                             onClick={(e) => e.stopPropagation()}
+                            onPointerDown={(e) => e.stopPropagation()}
                             placeholder="Descripción (opcional)"
                         />
                     </div>
@@ -142,6 +159,7 @@ export function DraggableExercise({
                                     }}
                                     className="p-0.5 text-pink-300 hover:text-pink-500 hover:bg-pink-50 rounded transition-colors flex-shrink-0"
                                     title={isExpanded ? "Ocultar descripción" : "Ver descripción"}
+                                    onPointerDown={(e) => e.stopPropagation()}
                                 >
                                     {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                                 </button>
@@ -158,6 +176,7 @@ export function DraggableExercise({
                         }}
                         className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded group-hover:opacity-100 transition-all ml-2 flex-shrink-0"
                         title="Eliminar ejercicio"
+                        onPointerDown={(e) => e.stopPropagation()}
                     >
                         <Trash2 className="w-3 h-3" />
                     </button>

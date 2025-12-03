@@ -6,7 +6,7 @@ import {
     DragCancelEvent,
 } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
-import { PlannedExercise, DragData, ActiveItem, Exercise } from '../types';
+import { PlannedExercise, DragData, ActiveItem, Exercise, Section } from '../types';
 import { createPreviewExercise, finalizePreviewExercise } from '../utils/exerciseHelpers';
 
 interface UseDragAndDropProps {
@@ -15,15 +15,21 @@ interface UseDragAndDropProps {
     exercises: Exercise[];
     isEditMode: boolean;
     onMoveExerciseToSection: (exerciseId: string, newSection: string) => void;
-    onDragEndShowMenu?: () => void; // Optional callback to show menu when drag ends
+    sections: Section[];
+    onReorderSections: (sections: Section[], group: string) => void;
+    onReorderExercises?: (exercises: Exercise[]) => void;
+    onDragEndShowMenu?: () => void;
 }
 
 export function useDragAndDrop({
     plannedExercises,
     setPlannedExercises,
     exercises,
+    sections,
     isEditMode,
     onMoveExerciseToSection,
+    onReorderSections,
+    onReorderExercises,
     onDragEndShowMenu,
 }: UseDragAndDropProps) {
     const [activeId, setActiveId] = useState<string | null>(null);
@@ -44,6 +50,13 @@ export function useDragAndDrop({
                 description: data.description!,
                 section: originalExercise?.section || 'Uncategorized',
                 source: 'menu'
+            });
+        } else if (data?.type === 'section') {
+            setActiveItem({
+                id: data.id!,
+                name: data.name!,
+                section: data.section!,
+                source: 'section'
             });
         } else {
             const item = plannedExercises.find(e => e.id === active.id);
@@ -68,9 +81,14 @@ export function useDragAndDrop({
 
         const data = active.data.current as DragData | undefined;
 
+        // Case 0: Dragging a Section
+        if (data?.type === 'section') {
+            return; // Section sorting is handled by SortableContext visual updates, commit on DragEnd
+        }
+
         // Case 1: Dragging from Menu
         if (data?.type === 'menu-item') {
-            if (isEditMode) return;
+            if (isEditMode) return; // In edit mode, menu items are sortable, not draggable to planner
 
             const previewId = `${activeId}-preview`;
             const isActiveInPlanner = plannedExercises.some(ex => ex.id === previewId);
@@ -117,18 +135,78 @@ export function useDragAndDrop({
         setActiveItem(null);
 
         const data = active.data.current as DragData | undefined;
-        if (data?.type === 'menu-item') {
-            if (isEditMode && over && typeof over.id === 'string' && over.id.startsWith('section-')) {
-                const newSection = over.id.replace('section-', '');
-                const exerciseId = data.id;
-                if (exerciseId) {
-                    onMoveExerciseToSection(exerciseId, newSection);
+
+        // Case 0: Section Reordering
+        if (data?.type === 'section') {
+            const activeId = active.id as string;
+            const overId = over?.id as string;
+
+            if (overId && activeId !== overId) {
+                const activeSection = sections.find(s => `section-${s.group}-${s.name}` === activeId);
+                const overSection = sections.find(s => `section-${s.group}-${s.name}` === overId);
+
+                if (activeSection && overSection && activeSection.group === overSection.group) {
+                    const groupSections = sections.filter(s => s.group === activeSection.group);
+                    const oldIndex = groupSections.findIndex(s => `section-${s.group}-${s.name}` === activeId);
+                    const newIndex = groupSections.findIndex(s => `section-${s.group}-${s.name}` === overId);
+
+                    if (oldIndex !== -1 && newIndex !== -1) {
+                        const newGroupSections = arrayMove(groupSections, oldIndex, newIndex);
+                        onReorderSections(newGroupSections, activeSection.group);
+                    }
                 }
-                return;
+            }
+            return;
+        }
+
+        // Case 1: Menu item dragging
+        if (data?.type === 'menu-item') {
+            if (isEditMode && over) {
+                const activeId = active.id as string;
+                const overId = over.id as string;
+
+                // Handle reordering within the menu (same section)
+                if (typeof overId === 'string' && overId.startsWith('menu-') && activeId !== overId) {
+                    const activeExercise = exercises.find(e => `menu-${e.id}` === activeId);
+                    const overExercise = exercises.find(e => `menu-${e.id}` === overId);
+
+                    if (activeExercise && overExercise && activeExercise.section === overExercise.section) {
+                        // Check if they're in the same group by looking up their sections
+                        const activeSection = sections.find(s => s.name === activeExercise.section);
+                        const overSection = sections.find(s => s.name === overExercise.section);
+
+                        if (activeSection && overSection && activeSection.group === overSection.group) {
+                            const oldIndex = exercises.findIndex(e => e.id === activeExercise.id);
+                            const newIndex = exercises.findIndex(e => e.id === overExercise.id);
+
+                            if (oldIndex !== -1 && newIndex !== -1 && onReorderExercises) {
+                                const newExercises = arrayMove(exercises, oldIndex, newIndex);
+                                onReorderExercises(newExercises);
+                            }
+                        }
+                    }
+                    return;
+                }
+
+                // Handle moving to a different section (dropping on section header)
+                if (typeof overId === 'string' && overId.startsWith('section-')) {
+                    let newSectionName = '';
+                    const section = sections.find(s => `section-${s.group}-${s.name}` === overId);
+                    if (section) {
+                        newSectionName = section.name;
+                    }
+
+                    const exerciseId = data.id;
+                    if (exerciseId && newSectionName) {
+                        onMoveExerciseToSection(exerciseId, newSectionName);
+                    }
+                    return;
+                }
             }
 
             if (isEditMode) return;
 
+            // Dragging to planner
             const previewId = `${active.id}-preview`;
             const isOverPlanner = over && (over.id === 'planner-droppable' || plannedExercises.some(e => e.id === over.id));
 
@@ -143,7 +221,6 @@ export function useDragAndDrop({
                 setPlannedExercises((items) => items.filter((item) => item.id !== previewId));
             }
 
-            // Only show menu when dragging FROM menu (not when reordering within planner)
             onDragEndShowMenu?.();
         }
         // Case 2: Reordering within planner
@@ -163,7 +240,7 @@ export function useDragAndDrop({
                 });
             }
         }
-    }, [plannedExercises, setPlannedExercises, isEditMode, onMoveExerciseToSection, onDragEndShowMenu]);
+    }, [plannedExercises, setPlannedExercises, exercises, isEditMode, onMoveExerciseToSection, onReorderExercises, onDragEndShowMenu, sections, onReorderSections]);
 
     const handleDragCancel = useCallback((event: DragCancelEvent) => {
         const { active } = event;
