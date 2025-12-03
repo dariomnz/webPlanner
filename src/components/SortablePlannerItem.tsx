@@ -33,8 +33,8 @@ export default function SortablePlannerItem({ exercise, onRemove, onUpdateExerci
     });
 
     const style = {
-        transform: isDragging ? undefined : CSS.Translate.toString(transform),
-        transition: isDragging ? undefined : transition,
+        transform: CSS.Translate.toString(transform),
+        transition,
         zIndex: isDragging ? 10 : 1,
         opacity: isDragging || exercise.isPreview ? 0.5 : 1,
     };

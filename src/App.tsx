@@ -6,7 +6,7 @@ import { useMenuVisibility } from './hooks/useMenuVisibility';
 import {
     DndContext,
     DragOverlay,
-    pointerWithin,
+    rectIntersection,
     KeyboardSensor,
     TouchSensor,
     useSensor,
@@ -224,7 +224,7 @@ function App() {
     return (
         <DndContext
             sensors={sensors}
-            collisionDetection={pointerWithin}
+            collisionDetection={rectIntersection}
             onDragStart={dragAndDrop.handleDragStart}
             onDragOver={dragAndDrop.handleDragOver}
             onDragEnd={dragAndDrop.handleDragEnd}

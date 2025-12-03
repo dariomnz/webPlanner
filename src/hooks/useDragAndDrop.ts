@@ -109,31 +109,6 @@ export function useDragAndDrop({
                 }
             }
         }
-        // Case 2: Reordering within Planner
-        else {
-            const isActiveInPlanner = plannedExercises.some(ex => ex.id === activeId);
-            const isOverPlanner = over.id === 'planner-droppable' || plannedExercises.some(ex => ex.id === overId);
-
-            if (isActiveInPlanner && isOverPlanner && activeId !== overId) {
-                const isSameSwap = lastSwapRef.current?.activeId === activeId && lastSwapRef.current?.overId === overId;
-
-                if (!isSameSwap) {
-                    lastSwapRef.current = { activeId, overId };
-
-                    setPlannedExercises((items) => {
-                        const oldIndex = items.findIndex((item) => item.id === activeId);
-                        const newIndex = items.findIndex((item) => item.id === overId);
-
-                        if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-                            const newItems = [...items];
-                            [newItems[oldIndex], newItems[newIndex]] = [newItems[newIndex], newItems[oldIndex]];
-                            return newItems;
-                        }
-                        return items;
-                    });
-                }
-            }
-        }
     }, [plannedExercises, setPlannedExercises, isEditMode]);
 
     const handleDragEnd = useCallback((event: DragEndEvent) => {
@@ -170,6 +145,23 @@ export function useDragAndDrop({
 
             // Only show menu when dragging FROM menu (not when reordering within planner)
             onDragEndShowMenu?.();
+        }
+        // Case 2: Reordering within planner
+        else {
+            const activeId = active.id as string;
+            const overId = over?.id as string;
+
+            if (activeId !== overId) {
+                setPlannedExercises((items) => {
+                    const oldIndex = items.findIndex((item) => item.id === activeId);
+                    const newIndex = items.findIndex((item) => item.id === overId);
+
+                    if (oldIndex !== -1 && newIndex !== -1) {
+                        return arrayMove(items, oldIndex, newIndex);
+                    }
+                    return items;
+                });
+            }
         }
     }, [plannedExercises, setPlannedExercises, isEditMode, onMoveExerciseToSection, onDragEndShowMenu]);
 
