@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import ClassPlannerList from './ClassPlannerList.tsx';
 import { PlannedExercise } from '../types';
 import { Trash2, Download, Upload } from 'lucide-react';
@@ -17,6 +17,8 @@ interface ClassPlannerProps {
 
 export default function ClassPlanner({ plannedExercises, onRemoveExercise, onClearAll, classTitle, onTitleChange, onExport, onImport }: ClassPlannerProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [isLeftBallerinaSpinning, setIsLeftBallerinaSpinning] = useState(false);
+    const [isRightBallerinaSpinning, setIsRightBallerinaSpinning] = useState(false);
 
     const handleImportClick = () => {
         fileInputRef.current?.click();
@@ -30,16 +32,37 @@ export default function ClassPlanner({ plannedExercises, onRemoveExercise, onCle
         if (event.target) event.target.value = '';
     };
 
+    const handleLeftBallerinaClick = () => {
+        if (isLeftBallerinaSpinning) return;
+        setIsLeftBallerinaSpinning(true);
+        setTimeout(() => setIsLeftBallerinaSpinning(false), 750); // Duration of one spin
+    };
+
+    const handleRightBallerinaClick = () => {
+        if (isRightBallerinaSpinning) return;
+        setIsRightBallerinaSpinning(true);
+        setTimeout(() => setIsRightBallerinaSpinning(false), 750); // Duration of one spin
+    };
+
     return (
         <div className="flex-1 h-full bg-beige-50 p-8 overflow-y-auto">
             <div className="max-w-3xl mx-auto">
                 <header className="mb-8 text-center relative">
+                    <div className="flex items-center justify-center gap-2">
 
-                    <h1 className="text-4xl font-serif text-pink-950 mb-2 font-bold flex items-center justify-center gap-2">
-                        <BalletIcon className="fill-pink-300 size-24 inline-block" />
-                        Planificación de Clase
-                        <BalletIcon className="fill-pink-300 scale-x-[-1] size-24 inline-block" />
-                    </h1>
+                        <BalletIcon
+                            className={`fill-pink-300 size-24 inline-block cursor-pointer hover:fill-pink-400 transition-colors ${isLeftBallerinaSpinning ? 'animate-ballerina-spin' : ''}`}
+                            onClick={handleLeftBallerinaClick}
+                        />
+                        <h1 className="text-4xl font-serif text-pink-950 mb-2 font-bold "
+                            onClick={() => { handleLeftBallerinaClick(); handleRightBallerinaClick(); }}>
+                            Planificación de Clase
+                        </h1>
+                        <BalletIcon
+                            className={`fill-pink-300 scale-x-[-1] size-24 inline-block cursor-pointer hover:fill-pink-400 transition-colors ${isRightBallerinaSpinning ? 'animate-ballerina-spin' : ''}`}
+                            onClick={handleRightBallerinaClick}
+                        />
+                    </div>
                     <p className="text-pink-800/80 font-medium mb-4">Arrastra ejercicios aquí para construir tu clase</p>
 
                 </header>

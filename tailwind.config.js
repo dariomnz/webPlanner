@@ -70,7 +70,7 @@ export default {
                 'heart-pulse': 'heart-pulse 1s ease-in-out infinite',
                 'heart-particle': 'heart-particle 1.5s ease-out forwards',
                 'fade-in-out': 'fade-in-out 2s ease-in-out',
-                'ballerina-spin': 'ballerina-spin 1s ease-in-out infinite',
+                'ballerina-spin': 'ballerina-spin 0.75s ease-in-out infinite',
             },
         },
     },
