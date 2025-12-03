@@ -15,6 +15,7 @@ export default function SortablePlannerItem({ exercise, onRemove, onUpdateExerci
     const [isExpanded, setIsExpanded] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editName, setEditName] = useState(exercise.name);
+    const [editSection, setEditSection] = useState(exercise.section);
     const [editDescription, setEditDescription] = useState(exercise.description || '');
 
     const formRef = useRef<HTMLDivElement>(null);
@@ -56,6 +57,7 @@ export default function SortablePlannerItem({ exercise, onRemove, onUpdateExerci
         e.stopPropagation();
         setIsEditing(true);
         setEditName(exercise.name);
+        setEditSection(exercise.section);
         setEditDescription(exercise.description || '');
     };
 
@@ -67,6 +69,10 @@ export default function SortablePlannerItem({ exercise, onRemove, onUpdateExerci
             updates.name = editName;
         }
 
+        if (editSection.trim() !== '' && editSection !== exercise.section) {
+            updates.section = editSection;
+        }
+
         if (editDescription.trim() !== (exercise.description || '')) {
             updates.description = editDescription.trim();
         }
@@ -76,6 +82,7 @@ export default function SortablePlannerItem({ exercise, onRemove, onUpdateExerci
         } else {
             // Reset if cancelled or no changes
             setEditName(exercise.name);
+            setEditSection(exercise.section);
             setEditDescription(exercise.description || '');
         }
     };
@@ -93,6 +100,7 @@ export default function SortablePlannerItem({ exercise, onRemove, onUpdateExerci
         } else if (e.key === 'Escape') {
             setIsEditing(false);
             setEditName(exercise.name);
+            setEditSection(exercise.section);
             setEditDescription(exercise.description || '');
         }
     };
@@ -121,10 +129,23 @@ export default function SortablePlannerItem({ exercise, onRemove, onUpdateExerci
                     )}
 
                     <div className="flex items-center gap-2 truncate w-full">
-                        <span className="text-lg text-pink-900 font-medium whitespace-nowrap">{exercise.section}:</span>
-
                         {isEditing ? (
                             <div ref={formRef} className="flex-1 flex flex-col gap-1 w-full">
+                                <div className="flex items-center gap-1 w-full">
+                                    <input
+                                        type="text"
+                                        value={editSection}
+                                        onChange={(e) => setEditSection(e.target.value)}
+                                        onBlur={handleBlur}
+                                        onKeyDown={handleKeyDown}
+                                        className="text-lg text-pink-900 font-medium flex-1 ml-1 mr-1 mt-1 bg-white border border-pink-300 rounded px-1 focus:outline-none focus:ring-2 focus:ring-pink-400"
+                                        onClick={(e) => e.stopPropagation()}
+                                        onPointerDown={(e) => e.stopPropagation()}
+                                        placeholder="Sección"
+                                        style={{ width: '120px' }}
+                                    />
+                                    <span className="text-lg text-pink-900 font-medium">:</span>
+                                </div>
                                 <input
                                     type="text"
                                     value={editName}
@@ -132,9 +153,10 @@ export default function SortablePlannerItem({ exercise, onRemove, onUpdateExerci
                                     onBlur={handleBlur}
                                     onKeyDown={handleKeyDown}
                                     autoFocus
-                                    className="text-lg text-gray-900 font-medium truncate bg-white border border-pink-300 rounded px-1 w-full focus:outline-none focus:ring-2 focus:ring-pink-400"
+                                    className="text-lg text-gray-900 font-medium flex-1 ml-1 mr-1 bg-white border border-pink-300 rounded px-1 focus:outline-none focus:ring-2 focus:ring-pink-400"
                                     onClick={(e) => e.stopPropagation()}
                                     onPointerDown={(e) => e.stopPropagation()}
+                                    placeholder="Nombre"
                                 />
                                 <textarea
                                     ref={textareaRef}
@@ -142,19 +164,22 @@ export default function SortablePlannerItem({ exercise, onRemove, onUpdateExerci
                                     onChange={(e) => setEditDescription(e.target.value)}
                                     onBlur={handleBlur}
                                     onKeyDown={handleKeyDown}
-                                    className="w-full px-1 py-1 text-sm text-gray-600 border border-pink-300 rounded focus:outline-none focus:ring-2 focus:ring-pink-400 resize-none overflow-hidden bg-white"
+                                    className="px-1 py-1 text-sm text-gray-600 flex-1 ml-1 mr-1 mb-1 border border-pink-300 rounded focus:outline-none focus:ring-2 focus:ring-pink-400 resize-none overflow-hidden bg-white"
                                     onClick={(e) => e.stopPropagation()}
                                     onPointerDown={(e) => e.stopPropagation()}
                                     placeholder="Descripción (opcional)"
                                 />
                             </div>
                         ) : (
-                            <span
-                                className="text-lg text-gray-900 font-medium truncate cursor-text hover:bg-pink-100/50 rounded px-1 transition-colors"
-                                title="Doble click para editar"
-                            >
-                                {exercise.name}
-                            </span>
+                            <>
+                                <span className="text-lg text-pink-900 font-medium whitespace-nowrap">{exercise.section}:</span>
+                                <span
+                                    className="text-lg text-gray-900 font-medium truncate cursor-text hover:bg-pink-100/50 rounded px-1 transition-colors"
+                                    title="Doble click para editar"
+                                >
+                                    {exercise.name}
+                                </span>
+                            </>
                         )}
                     </div>
                 </div>
@@ -170,7 +195,7 @@ export default function SortablePlannerItem({ exercise, onRemove, onUpdateExerci
             </div>
 
             {!isEditing && isExpanded && exercise.description && (
-                <div className="mt-1 text-sm text-gray-600 pl-12 pr-4 pb-2 whitespace-pre-wrap border-t border-pink-50 pt-2 ml-2">
+                <div className="mt-1 text-sm text-gray-600 whitespace-pre-wrap border-t border-pink-50 pt-2 ml-2">
                     {exercise.description}
                 </div>
             )}
