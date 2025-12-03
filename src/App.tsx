@@ -62,9 +62,6 @@ function App() {
         useSensor(TouchSensor, {
             activationConstraint: { delay: 250, tolerance: 5 },
         }),
-        useSensor(KeyboardSensor, {
-            coordinateGetter: sortableKeyboardCoordinates,
-        })
     );
 
     // Custom hooks for business logic

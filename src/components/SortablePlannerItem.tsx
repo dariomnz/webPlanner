@@ -48,9 +48,7 @@ export default function SortablePlannerItem({ exercise, onRemove, onUpdateExerci
     };
 
     useEffect(() => {
-        if (isEditing) {
-            updateDescriptionsize();
-        }
+        updateDescriptionsize();
     }, [isEditing, editDescription]);
 
     const handleDoubleClick = (e: React.MouseEvent) => {
@@ -114,7 +112,7 @@ export default function SortablePlannerItem({ exercise, onRemove, onUpdateExerci
             className="flex flex-col p-1 mb-1 bg-white rounded-xl shadow-sm border border-pink-200 group hover:shadow-md hover:border-pink-300 transition-all cursor-grab active:cursor-grabbing p-2 hover:bg-pink-50 rounded-md mr-1 text-pink-400 flex-shrink-0"
         >
             <div className="flex items-center justify-between w-full">
-                <div className="flex items-center flex-1 space-x-2 min-w-0">
+                <div className="flex items-center flex-1 space-x-2">
                     {!isEditing && exercise.description && (
                         <button
                             onClick={(e) => {
@@ -128,7 +126,7 @@ export default function SortablePlannerItem({ exercise, onRemove, onUpdateExerci
                         </button>
                     )}
 
-                    <div className="flex items-center gap-2 truncate w-full">
+                    <div className="flex items-center gap-2 flex-1">
                         {isEditing ? (
                             <div ref={formRef} className="flex-1 flex flex-col gap-1 w-full">
                                 <div className="flex items-center gap-1 w-full">
@@ -153,7 +151,7 @@ export default function SortablePlannerItem({ exercise, onRemove, onUpdateExerci
                                     onBlur={handleBlur}
                                     onKeyDown={handleKeyDown}
                                     autoFocus
-                                    className="text-lg text-gray-900 font-medium flex-1 ml-1 mr-1 bg-white border border-pink-300 rounded px-1 focus:outline-none focus:ring-2 focus:ring-pink-400"
+                                    className="text-lg text-gray-900 font-medium w-full ml-1 mr-1 bg-white border border-pink-300 rounded px-1 focus:outline-none focus:ring-2 focus:ring-pink-400"
                                     onClick={(e) => e.stopPropagation()}
                                     onPointerDown={(e) => e.stopPropagation()}
                                     placeholder="Nombre"
@@ -161,10 +159,10 @@ export default function SortablePlannerItem({ exercise, onRemove, onUpdateExerci
                                 <textarea
                                     ref={textareaRef}
                                     value={editDescription}
-                                    onChange={(e) => setEditDescription(e.target.value)}
+                                    onChange={(e) => { setEditDescription(e.target.value); }}
                                     onBlur={handleBlur}
                                     onKeyDown={handleKeyDown}
-                                    className="px-1 py-1 text-sm text-gray-600 flex-1 ml-1 mr-1 mb-1 border border-pink-300 rounded focus:outline-none focus:ring-2 focus:ring-pink-400 resize-none overflow-hidden bg-white"
+                                    className="w-full px-1 py-1 text-sm text-gray-600 ml-1 mr-1 mb-1 border border-pink-300 rounded focus:outline-none focus:ring-2 focus:ring-pink-400 resize-none overflow-hidden bg-white"
                                     onClick={(e) => e.stopPropagation()}
                                     onPointerDown={(e) => e.stopPropagation()}
                                     placeholder="Descripción (opcional)"
