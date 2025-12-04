@@ -35,11 +35,13 @@ export function useDragAndDrop({
     const [activeId, setActiveId] = useState<string | null>(null);
     const [activeItem, setActiveItem] = useState<ActiveItem | null>(null);
     const lastSwapRef = useRef<{ activeId: string; overId: string } | null>(null);
+    const isPreviewAddedRef = useRef(false);
 
     const handleDragStart = useCallback((event: DragStartEvent) => {
         const { active } = event;
         setActiveId(active.id as string);
         lastSwapRef.current = null;
+        isPreviewAddedRef.current = false;
 
         const data = active.data.current as DragData | undefined;
         if (data?.type === 'menu-item') {
@@ -49,13 +51,15 @@ export function useDragAndDrop({
                 name: data.name!,
                 description: data.description!,
                 section: originalExercise?.section || 'Uncategorized',
-                source: 'menu'
+                group: originalExercise?.group || 'Uncategorized',
+                source: 'menu',
             });
         } else if (data?.type === 'section') {
             setActiveItem({
                 id: data.id!,
                 name: data.name!,
                 section: data.section!,
+                group: data.group!,
                 source: 'section'
             });
         } else {
@@ -69,9 +73,10 @@ export function useDragAndDrop({
 
         if (!over) {
             const data = active.data.current as DragData | undefined;
-            if (data?.type === 'menu-item') {
+            if (data?.type === 'menu-item' && isPreviewAddedRef.current) {
                 const previewId = `${active.id}-preview`;
                 setPlannedExercises((items) => items.filter((item) => item.id !== previewId));
+                isPreviewAddedRef.current = false;
             }
             return;
         }
@@ -90,12 +95,19 @@ export function useDragAndDrop({
         if (data?.type === 'menu-item') {
             if (isEditMode) return; // In edit mode, menu items are sortable, not draggable to planner
 
-            const previewId = `${activeId}-preview`;
-            const isActiveInPlanner = plannedExercises.some(ex => ex.id === previewId);
-            const isOverPlanner = over.id === 'planner-droppable' || plannedExercises.some(ex => ex.id === overId);
+            // Ignore drag over other menu/section items
+            if (overId.startsWith('menu-') || overId.startsWith('section-')) {
+                return;
+            }
 
-            if (isOverPlanner) {
-                if (!isActiveInPlanner) {
+            const previewId = `${activeId}-preview`;
+
+            // We assume we are over the planner because we filtered out menu/section items
+            // Update ref SYNCHRONOUSLY to avoid race conditions
+            if (!isPreviewAddedRef.current) {
+                isPreviewAddedRef.current = true;
+
+                setPlannedExercises((items) => {
                     const newItem = createPreviewExercise(
                         activeId,
                         data.name!,
@@ -104,30 +116,27 @@ export function useDragAndDrop({
                         data.description
                     );
 
-                    setPlannedExercises((items) => {
-                        const overIndex = items.findIndex((item) => item.id === overId);
-                        const newIndex = overIndex >= 0 ? overIndex : items.length;
-                        const newItems = [...items];
-                        newItems.splice(newIndex, 0, newItem);
-                        return newItems;
-                    });
-                } else if (previewId !== overId) {
-                    setPlannedExercises((items) => {
-                        const oldIndex = items.findIndex((item) => item.id === previewId);
-                        const newIndex = items.findIndex((item) => item.id === overId);
-                        if (oldIndex !== -1 && newIndex !== -1) {
-                            return arrayMove(items, oldIndex, newIndex);
-                        }
-                        return items;
-                    });
-                }
-            } else {
-                if (isActiveInPlanner) {
-                    setPlannedExercises((items) => items.filter((item) => item.id !== previewId));
-                }
+                    const overIndex = items.findIndex((item) => item.id === overId);
+                    const newIndex = overIndex >= 0 ? overIndex : items.length;
+
+                    const newItems = [...items];
+                    newItems.splice(newIndex, 0, newItem);
+                    return newItems;
+                });
+            } else if (previewId !== overId) {
+                // Preview already exists, just move it
+                setPlannedExercises((items) => {
+                    const oldIndex = items.findIndex((item) => item.id === previewId);
+                    const newIndex = items.findIndex((item) => item.id === overId);
+
+                    if (oldIndex !== -1 && newIndex !== -1) {
+                        return arrayMove(items, oldIndex, newIndex);
+                    }
+                    return items;
+                });
             }
         }
-    }, [plannedExercises, setPlannedExercises, isEditMode]);
+    }, [setPlannedExercises, isEditMode]);
 
     const handleDragEnd = useCallback((event: DragEndEvent) => {
         const { active, over } = event;

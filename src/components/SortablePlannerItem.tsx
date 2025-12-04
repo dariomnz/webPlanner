@@ -30,7 +30,7 @@ export default function SortablePlannerItem({ exercise, onRemove, onUpdateExerci
         isDragging,
     } = useSortable({
         id,
-        disabled: isEditing
+        disabled: isEditing || exercise.isPreview  // Disable sortable for preview items
     });
 
     const style = {
