@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { ChevronDown, ChevronRight, Trash2, GripVertical } from 'lucide-react';
+import { ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
 import { DragData, Exercise } from '../../types';
 
 interface DraggableExerciseProps {
@@ -28,11 +28,12 @@ export function DraggableExercise({
     const [isExpanded, setIsExpanded] = useState(false);
     const formRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const nameRef = useRef<HTMLTextAreaElement>(null);
 
-    const updateDescriptionsize = () => {
-        if (textareaRef.current) {
-            textareaRef.current.style.height = 'auto';
-            textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    const updateTextareaSize = (ref: { current: HTMLTextAreaElement | null }) => {
+        if (ref.current) {
+            ref.current.style.height = 'auto';
+            ref.current.style.height = `${ref.current.scrollHeight}px`;
         }
     };
 
@@ -44,8 +45,12 @@ export function DraggableExercise({
 
     // Auto-resize textarea
     useEffect(() => {
-        updateDescriptionsize();
+        updateTextareaSize(textareaRef);
     }, [isRenaming, newDescription]);
+
+    useEffect(() => {
+        updateTextareaSize(nameRef);
+    }, [isRenaming, newName]);
 
     const dragdata: DragData = {
         type: 'menu-item',
@@ -96,6 +101,7 @@ export function DraggableExercise({
     const handleKeyDown = (e: React.KeyboardEvent) => {
         // If is the textarea the enter not handle the enter key to submit 
         if (e.key === 'Enter' && e.target !== textareaRef.current) {
+            e.preventDefault();
             handleRenameSubmit();
         } else if (e.key === 'Escape') {
             setIsRenaming(false);
@@ -124,17 +130,18 @@ export function DraggableExercise({
             <div className="flex items-center w-full">
                 {isRenaming ? (
                     <div ref={formRef} className="flex-1 flex flex-col gap-1">
-                        <input
-                            type="text"
+                        <textarea
+                            ref={nameRef}
                             value={newName}
                             onChange={(e) => setNewName(e.target.value)}
                             onBlur={handleBlur}
                             onKeyDown={handleKeyDown}
-                            className="w-full px-1 py-0.5 text-sm border border-pink-300 rounded focus:outline-none focus:ring-1 focus:ring-pink-400"
+                            className="w-full px-1 py-0.5 text-sm border border-pink-300 rounded focus:outline-none focus:ring-1 focus:ring-pink-400 resize-none overflow-hidden"
                             autoFocus
                             onClick={(e) => e.stopPropagation()}
                             onPointerDown={(e) => e.stopPropagation()}
                             placeholder="Nombre del ejercicio"
+                            rows={1}
                         />
                         <textarea
                             ref={textareaRef}
@@ -164,7 +171,7 @@ export function DraggableExercise({
                                     {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                                 </button>
                             )}
-                            <span className="text-gray-700 font-medium truncate">{name}</span>
+                            <span className="text-gray-700 font-medium break-words">{name}</span>
                         </div>
                     </div>
                 )}

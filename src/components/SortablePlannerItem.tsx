@@ -20,6 +20,7 @@ export default function SortablePlannerItem({ exercise, onRemove, onUpdateExerci
 
     const formRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const nameRef = useRef<HTMLTextAreaElement>(null);
 
     const {
         attributes,
@@ -40,16 +41,20 @@ export default function SortablePlannerItem({ exercise, onRemove, onUpdateExerci
         opacity: isDragging || exercise.isPreview ? 0.5 : 1,
     };
 
-    const updateDescriptionsize = () => {
-        if (textareaRef.current) {
-            textareaRef.current.style.height = 'auto';
-            textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    const updateTextareaSize = (ref: { current: HTMLTextAreaElement | null }) => {
+        if (ref.current) {
+            ref.current.style.height = 'auto';
+            ref.current.style.height = `${ref.current.scrollHeight}px`;
         }
     };
 
     useEffect(() => {
-        updateDescriptionsize();
+        updateTextareaSize(textareaRef);
     }, [isEditing, editDescription]);
+
+    useEffect(() => {
+        updateTextareaSize(nameRef);
+    }, [isEditing, editName]);
 
     const handleDoubleClick = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -94,6 +99,7 @@ export default function SortablePlannerItem({ exercise, onRemove, onUpdateExerci
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' && e.target !== textareaRef.current) {
+            e.preventDefault();
             handleSubmit();
         } else if (e.key === 'Escape') {
             setIsEditing(false);
@@ -126,7 +132,7 @@ export default function SortablePlannerItem({ exercise, onRemove, onUpdateExerci
                         </button>
                     )}
 
-                    <div className="flex items-center gap-2 flex-1">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
                         {isEditing ? (
                             <div ref={formRef} className="flex-1 flex flex-col gap-1 w-full">
                                 <div className="flex items-center gap-1 w-full">
@@ -144,17 +150,18 @@ export default function SortablePlannerItem({ exercise, onRemove, onUpdateExerci
                                     />
                                     <span className="text-lg text-pink-900 font-medium">:</span>
                                 </div>
-                                <input
-                                    type="text"
+                                <textarea
+                                    ref={nameRef}
                                     value={editName}
                                     onChange={(e) => setEditName(e.target.value)}
                                     onBlur={handleBlur}
                                     onKeyDown={handleKeyDown}
                                     autoFocus
-                                    className="text-lg text-gray-900 font-medium w-full ml-1 mr-1 bg-white border border-pink-300 rounded px-1 focus:outline-none focus:ring-2 focus:ring-pink-400"
+                                    className="text-lg text-gray-900 font-medium w-full ml-1 mr-1 bg-white border border-pink-300 rounded px-1 focus:outline-none focus:ring-2 focus:ring-pink-400 resize-none overflow-hidden"
                                     onClick={(e) => e.stopPropagation()}
                                     onPointerDown={(e) => e.stopPropagation()}
                                     placeholder="Nombre"
+                                    rows={1}
                                 />
                                 <textarea
                                     ref={textareaRef}
@@ -172,7 +179,7 @@ export default function SortablePlannerItem({ exercise, onRemove, onUpdateExerci
                             <>
                                 <span className="text-lg text-pink-900 font-medium whitespace-nowrap">{exercise.section}:</span>
                                 <span
-                                    className="text-lg text-gray-900 font-medium truncate cursor-text hover:bg-pink-100/50 rounded px-1 transition-colors"
+                                    className="text-lg text-gray-900 font-medium break-words cursor-text hover:bg-pink-100/50 rounded px-1 transition-colors"
                                     title="Doble click para editar"
                                 >
                                     {exercise.name}
@@ -187,7 +194,7 @@ export default function SortablePlannerItem({ exercise, onRemove, onUpdateExerci
                         onClick={() => onRemove(id)}
                         className="p-2 text-gray-400 hover:text-pink-500 hover:bg-pink-50 rounded-full transition-colors group-hover:opacity-100 flex-shrink-0"
                     >
-                        <Trash2 className="w-5 h-5" />
+                        <Trash2 className="size-4" />
                     </button>
                 )}
             </div>
