@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import useLocalStorage from './hooks/useLocalStorage';
 import { useDragAndDrop } from './hooks/useDragAndDrop';
 import { useExerciseManagement } from './hooks/useExerciseManagement';
@@ -108,9 +108,9 @@ function App() {
     }
 
     // Modal handlers
-    const handleDeleteExerciseFromMenu = (id: string) => {
+    const handleDeleteExerciseFromMenu = useCallback((id: string) => {
         setExerciseToDelete(id);
-    };
+    }, [setExerciseToDelete]);
 
     const confirmDeleteExercise = () => {
         if (exerciseToDelete) {

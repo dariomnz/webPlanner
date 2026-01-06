@@ -5,7 +5,14 @@ import svgr from 'vite-plugin-svgr';
 // https://vite.dev/config/
 export default defineConfig({
     base: '/webPlanner/',
-    plugins: [svgr(), react()],
+    plugins: [
+        svgr(),
+        react({
+            babel: {
+                plugins: [['babel-plugin-react-compiler', { target: '19' }]],
+            },
+        }),
+    ],
     server: {
         host: true, // Expone el servidor a la red local
         port: 5173, // Puerto por defecto de Vite
