@@ -1,209 +1,140 @@
-import { useState, useRef, useEffect } from 'react';
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+import { useState, useCallback } from 'react';
 import { Trash2, ChevronDown, ChevronRight } from 'lucide-react';
 import { PlannedExercise } from '../types';
+import { Draggable } from '@hello-pangea/dnd';
 
 interface SortablePlannerItemProps {
     exercise: PlannedExercise;
+    index: number;
     onRemove: (id: string) => void;
     onUpdateExercise: (id: string, updates: Partial<PlannedExercise>) => void;
 }
 
-export default function SortablePlannerItem({ exercise, onRemove, onUpdateExercise }: SortablePlannerItemProps) {
-    const id = exercise.id;
-    const [isExpanded, setIsExpanded] = useState(false);
+export default function SortablePlannerItem({ exercise, index, onRemove, onUpdateExercise }: SortablePlannerItemProps) {
+    const { id, name, section, description } = exercise;
     const [isEditing, setIsEditing] = useState(false);
-    const [editName, setEditName] = useState(exercise.name);
-    const [editSection, setEditSection] = useState(exercise.section);
-    const [editDescription, setEditDescription] = useState(exercise.description || '');
+    const [isExpanded, setIsExpanded] = useState(false);
 
-    const formRef = useRef<HTMLDivElement>(null);
-    const textareaRef = useRef<HTMLTextAreaElement>(null);
-    const nameRef = useRef<HTMLTextAreaElement>(null);
+    const handleNameChange = useCallback((newName: string) => {
+        onUpdateExercise(id, { name: newName });
+    }, [id, onUpdateExercise]);
 
-    const {
-        attributes,
-        listeners,
-        setNodeRef,
-        transform,
-        transition,
-        isDragging,
-    } = useSortable({
-        id,
-        disabled: isEditing || exercise.isPreview  // Disable sortable for preview items
-    });
+    const handleSectionChange = useCallback((newSection: string) => {
+        onUpdateExercise(id, { section: newSection });
+    }, [id, onUpdateExercise]);
 
-    const style = {
-        transform: CSS.Translate.toString(transform),
-        transition,
-        zIndex: isDragging ? 10 : 1,
-        opacity: isDragging || exercise.isPreview ? 0.5 : 1,
-    };
-
-    const updateTextareaSize = (ref: { current: HTMLTextAreaElement | null }) => {
-        if (ref.current) {
-            ref.current.style.height = 'auto';
-            ref.current.style.height = `${ref.current.scrollHeight}px`;
-        }
-    };
-
-    useEffect(() => {
-        updateTextareaSize(textareaRef);
-    }, [isEditing, editDescription]);
-
-    useEffect(() => {
-        updateTextareaSize(nameRef);
-    }, [isEditing, editName]);
-
-    const handleDoubleClick = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        setIsEditing(true);
-        setEditName(exercise.name);
-        setEditSection(exercise.section);
-        setEditDescription(exercise.description || '');
-    };
-
-    const handleSubmit = () => {
-        setIsEditing(false);
-        const updates: Partial<PlannedExercise> = {};
-
-        if (editName.trim() !== '' && editName !== exercise.name) {
-            updates.name = editName;
-        }
-
-        if (editSection.trim() !== '' && editSection !== exercise.section) {
-            updates.section = editSection;
-        }
-
-        if (editDescription.trim() !== (exercise.description || '')) {
-            updates.description = editDescription.trim();
-        }
-
-        if (Object.keys(updates).length > 0) {
-            onUpdateExercise(id, updates);
-        } else {
-            // Reset if cancelled or no changes
-            setEditName(exercise.name);
-            setEditSection(exercise.section);
-            setEditDescription(exercise.description || '');
-        }
-    };
-
-    const handleBlur = (e: React.FocusEvent) => {
-        if (formRef.current && formRef.current.contains(e.relatedTarget as Node)) {
-            return;
-        }
-        handleSubmit();
-    };
-
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' && e.target !== textareaRef.current) {
-            e.preventDefault();
-            handleSubmit();
-        } else if (e.key === 'Escape') {
-            setIsEditing(false);
-            setEditName(exercise.name);
-            setEditSection(exercise.section);
-            setEditDescription(exercise.description || '');
-        }
-    };
+    const handleDescriptionChange = useCallback((newDescription: string) => {
+        onUpdateExercise(id, { description: newDescription });
+    }, [id, onUpdateExercise]);
 
     return (
-        <div
-            ref={setNodeRef}
-            onDoubleClick={handleDoubleClick}
-            style={style}
-            {...attributes} {...listeners}
-            className="flex flex-col p-1 mb-1 bg-white rounded-xl shadow-sm border border-pink-200 group hover:shadow-md hover:border-pink-300 transition-all cursor-grab active:cursor-grabbing p-2 hover:bg-pink-50 rounded-md mr-1 text-pink-400 flex-shrink-0"
-        >
-            <div className="flex items-center justify-between w-full">
-                <div className="flex items-center flex-1 space-x-2">
-                    {!isEditing && exercise.description && (
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setIsExpanded(!isExpanded);
-                            }}
-                            className="p-1 text-pink-300 hover:text-pink-500 hover:bg-pink-50 rounded transition-colors flex-shrink-0"
-                            title={isExpanded ? "Ocultar descripción" : "Ver descripción"}
-                        >
-                            {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
-                        </button>
-                    )}
-
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                        {isEditing ? (
-                            <div ref={formRef} className="flex-1 flex flex-col gap-1 w-full">
-                                <div className="flex items-center gap-1 w-full">
-                                    <input
-                                        type="text"
-                                        value={editSection}
-                                        onChange={(e) => setEditSection(e.target.value)}
-                                        onBlur={handleBlur}
-                                        onKeyDown={handleKeyDown}
-                                        className="text-lg text-pink-900 font-medium flex-1 ml-1 mr-1 mt-1 bg-white border border-pink-300 rounded px-1 focus:outline-none focus:ring-2 focus:ring-pink-400"
-                                        onClick={(e) => e.stopPropagation()}
-                                        onPointerDown={(e) => e.stopPropagation()}
-                                        placeholder="Sección"
-                                        style={{ width: '120px' }}
-                                    />
-                                    <span className="text-lg text-pink-900 font-medium">:</span>
-                                </div>
-                                <textarea
-                                    ref={nameRef}
-                                    value={editName}
-                                    onChange={(e) => setEditName(e.target.value)}
-                                    onBlur={handleBlur}
-                                    onKeyDown={handleKeyDown}
-                                    autoFocus
-                                    className="text-lg text-gray-900 font-medium w-full ml-1 mr-1 bg-white border border-pink-300 rounded px-1 focus:outline-none focus:ring-2 focus:ring-pink-400 resize-none overflow-hidden"
-                                    onClick={(e) => e.stopPropagation()}
-                                    onPointerDown={(e) => e.stopPropagation()}
-                                    placeholder="Nombre"
-                                    rows={1}
-                                />
-                                <textarea
-                                    ref={textareaRef}
-                                    value={editDescription}
-                                    onChange={(e) => { setEditDescription(e.target.value); }}
-                                    onBlur={handleBlur}
-                                    onKeyDown={handleKeyDown}
-                                    className="w-full px-1 py-1 text-sm text-gray-600 ml-1 mr-1 mb-1 border border-pink-300 rounded focus:outline-none focus:ring-2 focus:ring-pink-400 resize-none overflow-hidden bg-white"
-                                    onClick={(e) => e.stopPropagation()}
-                                    onPointerDown={(e) => e.stopPropagation()}
-                                    placeholder="Descripción (opcional)"
-                                />
+        <Draggable draggableId={id} index={index} isDragDisabled={isEditing}>
+            {(provided, snapshot) => (
+                <div
+                    ref={provided.innerRef}
+                    {...provided.draggableProps}
+                    {...provided.dragHandleProps}
+                    className={`
+                        bg-white border rounded-xl mb-3 shadow-sm group
+                        ${snapshot.isDragging ? 'shadow-xl ring-2 ring-pink-500 z-50' : 'border-pink-100'}
+                    `}
+                >
+                    <div className="p-4 flex items-center gap-3">
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                                <span className="text-xs font-bold text-pink-400 uppercase tracking-wider">{section}</span>
                             </div>
-                        ) : (
-                            <>
-                                <span className="text-lg text-pink-900 font-medium whitespace-nowrap">{exercise.section}:</span>
-                                <span
-                                    className="text-lg text-gray-900 font-medium break-words cursor-text hover:bg-pink-100/50 rounded px-1 transition-colors"
-                                    title="Doble click para editar"
-                                >
-                                    {exercise.name}
-                                </span>
-                            </>
-                        )}
+
+                            {isEditing ? (
+                                <div className="space-y-3 mt-2">
+                                    <div>
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Nombre del ejercicio</label>
+                                        <input
+                                            type="text"
+                                            value={name}
+                                            onChange={(e) => handleNameChange(e.target.value)}
+                                            className="w-full text-lg font-medium text-pink-950 bg-pink-50/50 border border-pink-100 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-200"
+                                            autoFocus
+                                            onBlur={() => {
+                                                // Small delay to allow clicking other inputs
+                                                setTimeout(() => {
+                                                    if (document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
+                                                        // setIsEditing(false);
+                                                    }
+                                                }, 100);
+                                            }}
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Sección / Categoría</label>
+                                        <input
+                                            type="text"
+                                            value={section}
+                                            onChange={(e) => handleSectionChange(e.target.value)}
+                                            className="w-full text-sm font-medium text-pink-900/70 bg-pink-50/50 border border-pink-100 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-pink-200"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Notas / Descripción</label>
+                                        <textarea
+                                            value={description || ''}
+                                            onChange={(e) => handleDescriptionChange(e.target.value)}
+                                            placeholder="Añade notas sobre este ejercicio..."
+                                            className="w-full text-sm text-gray-600 bg-pink-50/50 border border-pink-100 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-200 min-h-[80px] resize-y"
+                                        />
+                                    </div>
+
+                                    <button
+                                        onClick={() => setIsEditing(false)}
+                                        className="w-full bg-pink-500 text-white text-sm font-bold py-2 rounded-lg hover:bg-pink-600 transition-colors shadow-sm"
+                                    >
+                                        Guardar Cambios
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col gap-1">
+                                    <h3 className="text-lg font-medium text-pink-950 leading-tight break-words" onClick={() => setIsEditing(true)}>
+                                        {name}
+                                    </h3>
+                                    {description && !isExpanded && (
+                                        <p className="text-sm text-gray-500 line-clamp-1 italic">{description}</p>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                                onClick={() => setIsExpanded(!isExpanded)}
+                                className={`p-2 rounded-full transition-all ${isExpanded ? 'bg-pink-50 text-pink-600' : 'text-gray-400 hover:text-pink-600 hover:bg-pink-50'}`}
+                                title={isExpanded ? "Contraer" : "Ver detalles"}
+                            >
+                                {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                            </button>
+                            <button
+                                onClick={() => onRemove(id)}
+                                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
+                                title="Eliminar de la clase"
+                            >
+                                <Trash2 size={18} />
+                            </button>
+                        </div>
                     </div>
-                </div>
 
-                {!isEditing && (
-                    <button
-                        onClick={() => onRemove(id)}
-                        className="p-2 text-gray-400 hover:text-pink-500 hover:bg-pink-50 rounded-full transition-colors group-hover:opacity-100 flex-shrink-0"
-                    >
-                        <Trash2 className="size-4" />
-                    </button>
-                )}
-            </div>
-
-            {!isEditing && isExpanded && exercise.description && (
-                <div className="mt-1 text-sm text-gray-600 whitespace-pre-wrap border-t border-pink-50 pt-2 ml-2">
-                    {exercise.description}
+                    {isExpanded && !isEditing && (
+                        <div className="px-4 pb-4 pt-1 border-t border-pink-50">
+                            <div className="bg-pink-50/30 rounded-lg p-3">
+                                <label className="text-[10px] font-bold text-pink-300 uppercase mb-2 block tracking-widest">Notas del ejercicio</label>
+                                <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">
+                                    {description || 'Sin notas adicionales.'}
+                                </p>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
-        </div>
+        </Draggable>
     );
 }

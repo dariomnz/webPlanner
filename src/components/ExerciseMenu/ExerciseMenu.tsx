@@ -1,11 +1,10 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Calendar, Pencil, Download, Upload } from 'lucide-react';
 import { Exercise, Section as SectionType } from '../../types';
 import { Section } from './Section';
 import { GroupSelector } from './GroupSelector';
 import { SectionManager } from './SectionManager';
-
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { Droppable } from '@hello-pangea/dnd';
 
 interface ExerciseMenuProps {
     exercises: Exercise[];
@@ -31,7 +30,7 @@ interface ExerciseMenuProps {
 
 const DEFAULT_GROUP = 'General';
 
-export default function ExerciseMenu({
+const ExerciseMenu = function ExerciseMenu({
     exercises,
     sections,
     groups,
@@ -42,7 +41,6 @@ export default function ExerciseMenu({
     onDeleteExercise,
     onDeleteSection,
     onDeleteGroup,
-    onMoveExerciseToSection,
     onRenameExercise,
     onUpdateExercise,
     onRenameSection,
@@ -54,14 +52,17 @@ export default function ExerciseMenu({
 }: ExerciseMenuProps) {
     const [selectedGroup, setSelectedGroup] = useState<string>(DEFAULT_GROUP);
 
-    // Asegurarse de que el grupo seleccionado existe
-    useEffect(() => {
-        if (groups.length > 0 && !groups.includes(selectedGroup)) {
-            setSelectedGroup(groups[0]);
-        } else if (groups.length === 0 && selectedGroup !== '') {
-            setSelectedGroup('');
-        }
-    }, [groups, selectedGroup]);
+    // Asegurarse de que el grupo seleccionado existe (sincronización durante el renderizado)
+    let groupToUse = selectedGroup;
+    if (groups.length > 0 && !groups.includes(selectedGroup)) {
+        groupToUse = groups[0];
+    } else if (groups.length === 0 && selectedGroup !== '') {
+        groupToUse = '';
+    }
+
+    if (groupToUse !== selectedGroup) {
+        setSelectedGroup(groupToUse);
+    }
 
     // Filtrar ejercicios y secciones por grupo seleccionado
     const filteredExercises = useMemo(() => {
@@ -76,26 +77,19 @@ export default function ExerciseMenu({
         return sections.filter(s => s.group === selectedGroup);
     }, [sections, selectedGroup]);
 
-    const sectionIds = useMemo(() =>
-        filteredSections.map(s => `section-${s.group}-${s.name}`),
-        [filteredSections]
-    );
-
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
             onImportExercises(file);
         }
         // Reset input value to allow selecting the same file again
         event.target.value = '';
-    };
+    }, [onImportExercises]);
 
-    const handleAddGroup = (groupName: string) => {
+    const handleAddGroup = useCallback((groupName: string) => {
         onAddGroup(groupName);
         setSelectedGroup(groupName);
-    };
-
-
+    }, [onAddGroup]);
 
     return (
         <div className={`
@@ -165,32 +159,42 @@ export default function ExerciseMenu({
                 />
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4">
-                <SortableContext items={sectionIds} strategy={verticalListSortingStrategy}>
-                    {filteredSections.map(section => (
-                        <Section
-                            key={`section-${section.group}-${section.name}`}
-                            title={section.name}
-                            exercises={filteredExercises.filter(e => e.section === section.name)}
-                            onAddExercise={onAddExercise}
-                            onAddToPlan={onAddToPlan}
-                            onDeleteExercise={onDeleteExercise}
-                            onDeleteSection={(sectionName) => onDeleteSection(sectionName, section.group)}
-                            onRenameSection={(oldName, newName) => onRenameSection(oldName, newName, section.group)}
-                            onRenameExercise={onRenameExercise}
-                            onUpdateExercise={onUpdateExercise}
-                            isEditMode={isEditMode}
-                            currentGroup={selectedGroup}
-                        />
-                    ))}
-                </SortableContext>
+            <Droppable droppableId="section-list" type="SECTION">
+                {(provided) => (
+                    <div
+                        ref={provided.innerRef}
+                        {...provided.droppableProps}
+                        className="flex-1 overflow-y-auto p-4"
+                    >
+                        {filteredSections.map((section, index) => (
+                            <Section
+                                key={`section-${section.group}-${section.name}`}
+                                index={index}
+                                title={section.name}
+                                exercises={filteredExercises.filter(e => e.section === section.name)}
+                                onAddExercise={onAddExercise}
+                                onAddToPlan={onAddToPlan}
+                                onDeleteExercise={onDeleteExercise}
+                                onDeleteSection={(sectionName) => onDeleteSection(sectionName, section.group)}
+                                onRenameSection={(oldName, newName) => onRenameSection(oldName, newName, section.group)}
+                                onRenameExercise={onRenameExercise}
+                                onUpdateExercise={onUpdateExercise}
+                                isEditMode={isEditMode}
+                                currentGroup={selectedGroup}
+                            />
+                        ))}
+                        {provided.placeholder}
 
-                {filteredSections.length === 0 && (
-                    <div className="text-xs text-gray-400 italic py-1">No hay secciones</div>
+                        {filteredSections.length === 0 && (
+                            <div className="text-xs text-gray-400 italic py-1">No hay secciones</div>
+                        )}
+
+                        <div className="md:hidden h-18"></div>
+                    </div>
                 )}
-
-                <div className="md:hidden h-18"></div>
-            </div>
+            </Droppable>
         </div>
     );
-}
+};
+
+export default ExerciseMenu;

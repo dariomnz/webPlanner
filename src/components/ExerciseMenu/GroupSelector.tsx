@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Plus, Tag, Trash2, ChevronDown } from 'lucide-react';
 
 interface GroupSelectorProps {
@@ -21,14 +21,22 @@ export function GroupSelector({
     const [newGroup, setNewGroup] = useState('');
     const [isAddingGroup, setIsAddingGroup] = useState(false);
 
-    const handleAddGroupSubmit = (e: React.FormEvent) => {
+    const handleAddGroupSubmit = useCallback((e: React.FormEvent) => {
         e.preventDefault();
         if (newGroup.trim()) {
             onAddGroup(newGroup.trim());
             setNewGroup('');
             setIsAddingGroup(false);
         }
-    };
+    }, [newGroup, onAddGroup]);
+
+    const handleToggleAdding = useCallback(() => {
+        setIsAddingGroup(prev => !prev);
+    }, []);
+
+    const handleDeleteClick = useCallback(() => {
+        onDeleteGroup(selectedGroup);
+    }, [onDeleteGroup, selectedGroup]);
 
     return (
         <div>
@@ -60,7 +68,7 @@ export function GroupSelector({
                 {isEditMode && (
                     <div className="flex gap-1">
                         <button
-                            onClick={() => setIsAddingGroup(!isAddingGroup)}
+                            onClick={handleToggleAdding}
                             className="p-2 text-pink-600 hover:text-pink-700 bg-pink-50 hover:bg-pink-100 rounded-lg transition-all border border-pink-200"
                             title="Añadir nuevo grupo"
                         >
@@ -68,7 +76,7 @@ export function GroupSelector({
                         </button>
                         {groups.length > 0 && (
                             <button
-                                onClick={() => onDeleteGroup(selectedGroup)}
+                                onClick={handleDeleteClick}
                                 className="p-2 text-red-500 hover:text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-all border border-red-200"
                                 title={`Eliminar grupo "${selectedGroup}"`}
                             >

@@ -12,10 +12,14 @@ export interface Section {
 }
 
 
-export interface PlannedExercise extends Exercise {
-    isPreview?: boolean;
+export type PlannedExercise = Exercise;
+
+export interface ActiveSection {
+    id: string;
+    name: string;
+    section: string;
+    group: string;
+    source: 'section';
 }
 
-export interface ActiveItem extends PlannedExercise {
-    source?: 'menu' | 'planner' | 'section';
-}
+export type ActiveItem = (PlannedExercise & { source?: 'menu' | 'planner' }) | ActiveSection;

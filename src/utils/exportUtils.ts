@@ -1,4 +1,10 @@
-import { PlannedExercise } from '../types';
+import { Exercise, PlannedExercise, Section } from '../types';
+
+interface BackupData {
+    exercises: Exercise[];
+    sections: Section[];
+    groups: string[];
+}
 
 export const exportClassPlan = (classTitle: string, plannedExercises: PlannedExercise[]) => {
     // Define the SVG symbol content (path only)
@@ -140,7 +146,7 @@ export const importClassPlan = (file: File): Promise<{ classTitle: string, plann
                         const data = JSON.parse(script.textContent);
                         resolve(data);
                         return;
-                    } catch (e) {
+                    } catch {
                         console.warn('Failed to parse embedded JSON, falling back to HTML parsing');
                     }
                 }
@@ -190,7 +196,7 @@ export const importClassPlan = (file: File): Promise<{ classTitle: string, plann
     });
 };
 
-export const exportDataToJson = (data: any, filename: string) => {
+export const exportDataToJson = (data: BackupData, filename: string) => {
     const jsonString = JSON.stringify(data, null, 2);
     const blob = new Blob([jsonString], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -205,7 +211,7 @@ export const exportDataToJson = (data: any, filename: string) => {
     URL.revokeObjectURL(url);
 };
 
-export const importDataFromJson = (file: File): Promise<any> => {
+export const importDataFromJson = (file: File): Promise<BackupData> => {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = (event) => {

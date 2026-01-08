@@ -3,17 +3,6 @@ import useLocalStorage from './hooks/useLocalStorage';
 import { useDragAndDrop } from './hooks/useDragAndDrop';
 import { useExerciseManagement } from './hooks/useExerciseManagement';
 import { useMenuVisibility } from './hooks/useMenuVisibility';
-import {
-    DndContext,
-    DragOverlay,
-    rectIntersection,
-    KeyboardSensor,
-    TouchSensor,
-    useSensor,
-    useSensors,
-    MouseSensor,
-} from '@dnd-kit/core';
-import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import ExerciseMenu from './components/ExerciseMenu/ExerciseMenu.tsx';
 import ClassPlanner from './components/ClassPlanner.tsx';
 import ConfirmationModal from './components/ConfirmationModal.tsx';
@@ -21,6 +10,7 @@ import HeartAnimation from './components/HeartAnimation.tsx';
 import { Exercise, PlannedExercise, Section } from './types';
 import { X, Menu, Heart } from 'lucide-react';
 import { exportClassPlan, exportDataToJson, importDataFromJson, importClassPlan } from './utils/exportUtils';
+import { DragDropContext } from '@hello-pangea/dnd';
 
 
 function App() {
@@ -54,16 +44,6 @@ function App() {
     const [showHeartAnimation, setShowHeartAnimation] = useState<boolean>(false);
 
 
-    // Drag and drop sensors
-    const sensors = useSensors(
-        useSensor(MouseSensor, {
-            activationConstraint: { distance: 10 },
-        }),
-        useSensor(TouchSensor, {
-            activationConstraint: { delay: 250, tolerance: 5 },
-        }),
-    );
-
     // Custom hooks for business logic
     const exerciseManagement = useExerciseManagement({
         exercises,
@@ -77,14 +57,18 @@ function App() {
         isEditMode,
     });
 
-    // Create a stable callback ref for showing menu
-    const [activeIdForMenu, setActiveIdForMenu] = useState<string | null>(null);
-    const [activeItemSourceForMenu, setActiveItemSourceForMenu] = useState<'menu' | 'planner' | 'section' | undefined>(undefined);
+    const [activeId, setActiveId] = useState<string | null>(null);
+    const [activeSource, setActiveSource] = useState<'menu' | 'planner' | 'section' | undefined>(undefined);
+
+    const onActiveChange = useCallback((id: string | null, source?: 'menu' | 'planner' | 'section') => {
+        setActiveId(id);
+        setActiveSource(source);
+    }, []);
 
     const menuVisibility = useMenuVisibility({
         isEditMode,
-        activeId: activeIdForMenu,
-        activeItemSource: activeItemSourceForMenu,
+        activeId,
+        activeItemSource: activeSource,
     });
 
     const dragAndDrop = useDragAndDrop({
@@ -97,64 +81,57 @@ function App() {
         onReorderSections: exerciseManagement.handleReorderSections,
         onReorderExercises: exerciseManagement.handleReorderExercises,
         onDragEndShowMenu: menuVisibility.showMenuOnMobile,
+        onActiveChange
     });
-
-    // Sync drag state to menu visibility
-    if (dragAndDrop.activeId !== activeIdForMenu) {
-        setActiveIdForMenu(dragAndDrop.activeId);
-    }
-    if (dragAndDrop.activeItem?.source !== activeItemSourceForMenu) {
-        setActiveItemSourceForMenu(dragAndDrop.activeItem?.source);
-    }
 
     // Modal handlers
     const handleDeleteExerciseFromMenu = useCallback((id: string) => {
         setExerciseToDelete(id);
-    }, [setExerciseToDelete]);
+    }, []);
 
-    const confirmDeleteExercise = () => {
+    const confirmDeleteExercise = useCallback(() => {
         if (exerciseToDelete) {
             exerciseManagement.handleDeleteExerciseFromMenu(exerciseToDelete);
             setExerciseToDelete(null);
         }
-    };
+    }, [exerciseToDelete, exerciseManagement]);
 
-    const handleDeleteSection = (sectionName: string, group: string) => {
+    const handleDeleteSection = useCallback((sectionName: string, group: string) => {
         setSectionToDelete({ name: sectionName, group });
-    };
+    }, []);
 
-    const confirmDeleteSection = () => {
+    const confirmDeleteSection = useCallback(() => {
         if (sectionToDelete) {
             exerciseManagement.handleDeleteSection(sectionToDelete.name, sectionToDelete.group);
             setSectionToDelete(null);
         }
-    };
+    }, [sectionToDelete, exerciseManagement]);
 
-    const handleDeleteGroup = (group: string) => {
+    const handleDeleteGroup = useCallback((group: string) => {
         setGroupToDelete(group);
-    };
+    }, []);
 
-    const confirmDeleteGroup = () => {
+    const confirmDeleteGroup = useCallback(() => {
         if (groupToDelete) {
             exerciseManagement.handleDeleteGroup(groupToDelete);
             setGroupToDelete(null);
         }
-    };
+    }, [groupToDelete, exerciseManagement]);
 
-    const handleClearAll = () => {
+    const handleClearAll = useCallback(() => {
         setIsClearModalOpen(true);
-    };
+    }, []);
 
-    const confirmClearAll = () => {
+    const confirmClearAll = useCallback(() => {
         exerciseManagement.handleClearAll();
         setIsClearModalOpen(false);
-    };
+    }, [exerciseManagement]);
 
-    const handleExport = () => {
+    const handleExport = useCallback(() => {
         exportClassPlan(classTitle, plannedExercises);
-    };
+    }, [classTitle, plannedExercises]);
 
-    const handleImportClass = async (file: File) => {
+    const handleImportClass = useCallback(async (file: File) => {
         try {
             const data = await importClassPlan(file);
             if (data.plannedExercises && Array.isArray(data.plannedExercises)) {
@@ -175,23 +152,23 @@ function App() {
             console.error('Error importing class plan:', error);
             alert('Error al importar la clase. Asegúrate de que es un archivo válido generado por esta aplicación.');
         }
-    };
+    }, [plannedExercises, setPlannedExercises, setClassTitle]);
 
-    const handleExportExercises = () => {
+    const handleExportExercises = useCallback(() => {
         const data = {
             exercises,
             sections,
             groups
         };
         exportDataToJson(data, 'exercises_backup');
-    };
+    }, [exercises, sections, groups]);
 
-    const handleImportExercises = async (file: File) => {
+    const handleImportExercises = useCallback(async (file: File) => {
         try {
             const data = await importDataFromJson(file);
             if (data.exercises && Array.isArray(data.exercises) && data.sections && Array.isArray(data.sections)) {
                 // Migración para archivos antiguos que no tienen grupos
-                const importedSections = data.sections.map((s: any) =>
+                const importedSections = data.sections.map((s: string | Section) =>
                     typeof s === 'string' ? { name: s, group: 'General' } : s
                 );
                 const importedGroups = data.groups || ['General'];
@@ -209,9 +186,9 @@ function App() {
             console.error('Error importing exercises:', error);
             alert('Error al leer el archivo.');
         }
-    };
+    }, []);
 
-    const confirmImport = () => {
+    const confirmImport = useCallback(() => {
         if (pendingImportData) {
             setExercises(pendingImportData.exercises);
             setSections(pendingImportData.sections);
@@ -219,17 +196,21 @@ function App() {
             setPendingImportData(null);
             setIsImportModalOpen(false);
         }
-    };
+    }, [pendingImportData, setExercises, setSections, setGroups]);
+
+    const handleShowHeart = useCallback(() => setShowHeartAnimation(true), []);
+    const handleHideHeart = useCallback(() => setShowHeartAnimation(false), []);
+    const handleCloseImportModal = useCallback(() => {
+        setIsImportModalOpen(false);
+        setPendingImportData(null);
+    }, []);
+    const handleCloseClearModal = useCallback(() => setIsClearModalOpen(false), []);
+    const handleCloseDeleteExerciseModal = useCallback(() => setExerciseToDelete(null), []);
+    const handleCloseDeleteSectionModal = useCallback(() => setSectionToDelete(null), []);
+    const handleCloseDeleteGroupModal = useCallback(() => setGroupToDelete(null), []);
 
     return (
-        <DndContext
-            sensors={sensors}
-            collisionDetection={rectIntersection}
-            onDragStart={dragAndDrop.handleDragStart}
-            onDragOver={dragAndDrop.handleDragOver}
-            onDragEnd={dragAndDrop.handleDragEnd}
-            onDragCancel={dragAndDrop.handleDragCancel}
-        >
+        <DragDropContext onDragStart={dragAndDrop.handleDragStart} onDragEnd={dragAndDrop.handleDragEnd}>
             <div className="flex flex-col md:flex-row h-dvh w-screen font-sans text-gray-900 overflow-hidden">
                 <ExerciseMenu
                     exercises={exercises}
@@ -271,13 +252,13 @@ function App() {
                         className="p-4 bg-pink-500 text-white rounded-full shadow-lg hover:bg-pink-600 transition-all active:scale-95"
                         aria-label={menuVisibility.isMenuVisible ? "Ocultar menú" : "Mostrar menú"}
                     >
-                        {menuVisibility.isMenuVisible ? <X></X> : <Menu></Menu>}
+                        {menuVisibility.isMenuVisible ? <X /> : <Menu />}
                     </button>
 
                     {/* Heart button - only visible when menu is open */}
                     {menuVisibility.isMenuVisible && (
                         <button
-                            onClick={() => setShowHeartAnimation(true)}
+                            onClick={handleShowHeart}
                             className="p-4 bg-pink-500 text-white rounded-full shadow-lg hover:bg-pink-600 transition-all scale-70 active:scale-60 animate-heart-pop"
                             aria-label="Mostrar corazón"
                         >
@@ -287,21 +268,9 @@ function App() {
 
                 </div>
 
-
-                <DragOverlay>
-                    {dragAndDrop.activeId && dragAndDrop.activeItem ? (
-                        <div className="p-3 bg-white rounded-lg shadow-xl border border-pink-300 opacity-90 w-64 cursor-grabbing">
-                            <span className="font-medium text-gray-800">{dragAndDrop.activeItem.name}</span>
-                        </div>
-                    ) : null}
-                </DragOverlay>
-
                 <ConfirmationModal
                     isOpen={isImportModalOpen}
-                    onClose={() => {
-                        setIsImportModalOpen(false);
-                        setPendingImportData(null);
-                    }}
+                    onClose={handleCloseImportModal}
                     onConfirm={confirmImport}
                     title="¿Importar ejercicios?"
                     message="¿Estás seguro de que quieres importar estos ejercicios? Se reemplazarán todos los ejercicios y secciones actuales por los del archivo."
@@ -309,7 +278,7 @@ function App() {
 
                 <ConfirmationModal
                     isOpen={isClearModalOpen}
-                    onClose={() => setIsClearModalOpen(false)}
+                    onClose={handleCloseClearModal}
                     onConfirm={confirmClearAll}
                     title="¿Borrar toda la clase?"
                     message="¿Estás seguro de que quieres eliminar todos los ejercicios de la planificación? Esta acción no se puede deshacer y perderás el progreso actual."
@@ -317,7 +286,7 @@ function App() {
 
                 <ConfirmationModal
                     isOpen={!!exerciseToDelete}
-                    onClose={() => setExerciseToDelete(null)}
+                    onClose={handleCloseDeleteExerciseModal}
                     onConfirm={confirmDeleteExercise}
                     title="¿Eliminar ejercicio?"
                     message="¿Estás seguro de que quieres eliminar este ejercicio de la biblioteca? Se mantendrá en las clases ya planificadas pero no podrás volver a añadirlo."
@@ -325,7 +294,7 @@ function App() {
 
                 <ConfirmationModal
                     isOpen={!!sectionToDelete}
-                    onClose={() => setSectionToDelete(null)}
+                    onClose={handleCloseDeleteSectionModal}
                     onConfirm={confirmDeleteSection}
                     title="¿Eliminar sección?"
                     message={`¿Estás seguro de que quieres eliminar la sección "${sectionToDelete?.name}"? SE BORRARÁN TODOS LOS EJERCICIOS de esta sección.`}
@@ -333,7 +302,7 @@ function App() {
 
                 <ConfirmationModal
                     isOpen={!!groupToDelete}
-                    onClose={() => setGroupToDelete(null)}
+                    onClose={handleCloseDeleteGroupModal}
                     onConfirm={confirmDeleteGroup}
                     title="¿Eliminar grupo?"
                     message={`¿Estás seguro de que quieres eliminar el grupo "${groupToDelete}"? SE BORRARÁN TODOS LOS EJERCICIOS Y SECCIONES de este grupo. Esta acción no se puede deshacer.`}
@@ -341,12 +310,11 @@ function App() {
 
                 {/* Heart Animation */}
                 {showHeartAnimation && (
-                    <HeartAnimation onComplete={() => setShowHeartAnimation(false)} />
+                    <HeartAnimation onComplete={handleHideHeart} />
                 )}
             </div>
-        </DndContext >
+        </DragDropContext>
     );
 }
 
 export default App;
-

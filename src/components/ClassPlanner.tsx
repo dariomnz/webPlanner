@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react';
-import ClassPlannerList from './ClassPlannerList.tsx';
+import { useRef, useState, useCallback } from 'react';
+import { ClassPlannerList } from './ClassPlannerList.tsx';
 import { PlannedExercise } from '../types';
 import { Trash2, Download, Upload } from 'lucide-react';
 import BalletIcon from '../assets/ballerina.svg?react';
@@ -21,29 +21,29 @@ export default function ClassPlanner({ plannedExercises, onRemoveExercise, onCle
     const [isLeftBallerinaSpinning, setIsLeftBallerinaSpinning] = useState(false);
     const [isRightBallerinaSpinning, setIsRightBallerinaSpinning] = useState(false);
 
-    const handleImportClick = () => {
+    const handleImportClick = useCallback(() => {
         fileInputRef.current?.click();
-    };
+    }, []);
 
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
             onImport(file);
         }
         if (event.target) event.target.value = '';
-    };
+    }, [onImport]);
 
-    const handleLeftBallerinaClick = () => {
+    const handleLeftBallerinaClick = useCallback(() => {
         if (isLeftBallerinaSpinning) return;
         setIsLeftBallerinaSpinning(true);
         setTimeout(() => setIsLeftBallerinaSpinning(false), 750); // Duration of one spin
-    };
+    }, [isLeftBallerinaSpinning]);
 
-    const handleRightBallerinaClick = () => {
+    const handleRightBallerinaClick = useCallback(() => {
         if (isRightBallerinaSpinning) return;
         setIsRightBallerinaSpinning(true);
         setTimeout(() => setIsRightBallerinaSpinning(false), 750); // Duration of one spin
-    };
+    }, [isRightBallerinaSpinning]);
 
     return (
         <div className="flex-1 h-full bg-beige-50 p-8 overflow-y-auto">

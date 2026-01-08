@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Plus, FolderPlus } from 'lucide-react';
 
 interface SectionManagerProps {
@@ -15,14 +15,18 @@ export function SectionManager({
     const [newSection, setNewSection] = useState('');
     const [isAddingSection, setIsAddingSection] = useState(false);
 
-    const handleAddSectionSubmit = (e: React.FormEvent) => {
+    const handleAddSectionSubmit = useCallback((e: React.FormEvent) => {
         e.preventDefault();
         if (newSection.trim()) {
             onAddSection(newSection.trim(), selectedGroup);
             setNewSection('');
             setIsAddingSection(false);
         }
-    };
+    }, [newSection, onAddSection, selectedGroup]);
+
+    const handleToggleAdding = useCallback(() => {
+        setIsAddingSection(prev => !prev);
+    }, []);
 
     if (!isEditMode) return null;
 
@@ -30,7 +34,7 @@ export function SectionManager({
         <div>
             <div className="mb-3"></div>
             <button
-                onClick={() => setIsAddingSection(!isAddingSection)}
+                onClick={handleToggleAdding}
                 className="w-full flex items-center justify-center gap-2 text-xs font-medium text-pink-600 hover:text-pink-800 bg-white px-3 py-2 rounded-lg border border-pink-200 shadow-sm hover:shadow transition-all"
             >
                 <FolderPlus className="w-3 h-3" />

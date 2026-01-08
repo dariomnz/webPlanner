@@ -26,36 +26,6 @@ export function createPlannedExercise(exercise: Exercise): PlannedExercise {
     };
 }
 
-/**
- * Creates a preview exercise for drag operations
- */
-export function createPreviewExercise(
-    id: string,
-    name: string,
-    section: string,
-    group: string,
-    description?: string
-): PlannedExercise {
-    return {
-        id: `${id}-preview`,
-        name,
-        section,
-        group,
-        description,
-        isPreview: true,
-    };
-}
-
-/**
- * Finalizes a preview exercise by removing the preview flag and generating a new ID
- */
-export function finalizePreviewExercise(exercise: PlannedExercise): PlannedExercise {
-    const { isPreview, ...rest } = exercise;
-    return {
-        ...rest,
-        id: `planned-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-    };
-}
 
 /**
  * Filters exercises by section

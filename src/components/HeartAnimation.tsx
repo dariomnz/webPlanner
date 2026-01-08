@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { Heart } from 'lucide-react';
 import BalletIcon from '../assets/ballerina.svg?react';
 
@@ -25,22 +25,21 @@ export default function HeartAnimation({ onComplete }: HeartAnimationProps) {
         return () => clearTimeout(timer);
     }, [onComplete]);
 
-    // Generate random positions for particles
-    const particles = useMemo<Particle[]>(() => {
+    // Generate random positions for particles on mount
+    const [particles] = useState<Particle[]>(() => {
         return [...Array(16)].map(() => {
-            const angle = Math.random() * Math.PI * 2; // Random angle in radians
-            const distance = 250 + Math.random() * 50; // Random distance between 100-250px
-
+            const angle = Math.random() * Math.PI * 2;
+            const distance = 250 + Math.random() * 50;
             return {
-                x: Math.cos(angle) * distance, // Calculate X position
-                y: Math.sin(angle) * distance, // Calculate Y position
-                size: 50 + Math.random() * 70, // Random size between 50-120
-                delay: Math.random() * 1, // Random delay between 0-0.3s
-                rotation: Math.random() * 360, // Random rotation
-                duration: 2, // Random duration between 1.2-1.8s
+                x: Math.cos(angle) * distance,
+                y: Math.sin(angle) * distance,
+                size: 50 + Math.random() * 70,
+                delay: Math.random() * 1,
+                rotation: Math.random() * 360,
+                duration: 2,
             };
         });
-    }, []);
+    });
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-none">

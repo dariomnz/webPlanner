@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { X, AlertTriangle } from 'lucide-react';
 
 interface ConfirmationModalProps {
@@ -15,6 +16,11 @@ export default function ConfirmationModal({
     title,
     message,
 }: ConfirmationModalProps) {
+    const handleConfirmClick = useCallback(() => {
+        onConfirm();
+        onClose();
+    }, [onConfirm, onClose]);
+
     if (!isOpen) return null;
 
     return (
@@ -56,10 +62,7 @@ export default function ConfirmationModal({
                         Cancelar
                     </button>
                     <button
-                        onClick={() => {
-                            onConfirm();
-                            onClose();
-                        }}
+                        onClick={handleConfirmClick}
                         className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 shadow-sm transition-colors"
                     >
                         Sí
