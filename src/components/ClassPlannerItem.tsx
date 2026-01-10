@@ -10,7 +10,7 @@ interface SortablePlannerItemProps {
     onUpdateExercise: (id: string, updates: Partial<PlannedExercise>) => void;
 }
 
-export default function SortablePlannerItem({ exercise, index, onRemove, onUpdateExercise }: SortablePlannerItemProps) {
+export default function ClassPlannerItem({ exercise, index, onRemove, onUpdateExercise }: SortablePlannerItemProps) {
     const { id, name, section, description } = exercise;
     const [isEditing, setIsEditing] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
@@ -35,14 +35,26 @@ export default function SortablePlannerItem({ exercise, index, onRemove, onUpdat
                     {...provided.draggableProps}
                     {...provided.dragHandleProps}
                     className={`
-                        bg-white border rounded-xl mb-3 shadow-sm group
+                        bg-white border rounded-xl p-2 mb-1 shadow-sm group
                         ${snapshot.isDragging ? 'shadow-xl ring-2 ring-pink-500 z-50' : 'border-pink-100'}
                     `}
                 >
-                    <div className="p-4 flex items-center gap-3">
+                    <div className="flex items-center gap-2">
+                        {exercise.description && (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setIsExpanded(!isExpanded);
+                                }}
+                                className="p-1 text-pink-300 hover:text-pink-500 hover:bg-pink-50 rounded transition-colors flex-shrink-0"
+                                title={isExpanded ? "Ocultar descripción" : "Ver descripción"}
+                            >
+                                {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                            </button>
+                        )}
                         <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
-                                <span className="text-xs font-bold text-pink-400 uppercase tracking-wider">{section}</span>
+                                <span className="text-xs font-bold text-pink-400 tracking-wider">{section}</span>
                             </div>
 
                             {isEditing ? (
@@ -98,39 +110,22 @@ export default function SortablePlannerItem({ exercise, index, onRemove, onUpdat
                                     <h3 className="text-lg font-medium text-pink-950 leading-tight break-words" onClick={() => setIsEditing(true)}>
                                         {name}
                                     </h3>
-                                    {description && !isExpanded && (
-                                        <p className="text-sm text-gray-500 line-clamp-1 italic">{description}</p>
-                                    )}
                                 </div>
                             )}
                         </div>
 
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button
-                                onClick={() => setIsExpanded(!isExpanded)}
-                                className={`p-2 rounded-full transition-all ${isExpanded ? 'bg-pink-50 text-pink-600' : 'text-gray-400 hover:text-pink-600 hover:bg-pink-50'}`}
-                                title={isExpanded ? "Contraer" : "Ver detalles"}
-                            >
-                                {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
-                            </button>
-                            <button
-                                onClick={() => onRemove(id)}
-                                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
-                                title="Eliminar de la clase"
-                            >
-                                <Trash2 size={18} />
-                            </button>
-                        </div>
+                        {!isEditing && <button
+                            onClick={() => onRemove(id)}
+                            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
+                            title="Eliminar de la clase"
+                        >
+                            <Trash2 size={18} />
+                        </button>}
                     </div>
 
-                    {isExpanded && !isEditing && (
-                        <div className="px-4 pb-4 pt-1 border-t border-pink-50">
-                            <div className="bg-pink-50/30 rounded-lg p-3">
-                                <label className="text-[10px] font-bold text-pink-300 uppercase mb-2 block tracking-widest">Notas del ejercicio</label>
-                                <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">
-                                    {description || 'Sin notas adicionales.'}
-                                </p>
-                            </div>
+                    {isExpanded && !isEditing && description && (
+                        <div className="mt-1 text-sm text-gray-600 whitespace-pre-wrap border-t border-pink-50 pt-2 ml-2">
+                            {description}
                         </div>
                     )}
                 </div>

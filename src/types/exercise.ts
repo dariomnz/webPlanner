@@ -21,5 +21,3 @@ export interface ActiveSection {
     group: string;
     source: 'section';
 }
-
-export type ActiveItem = (PlannedExercise & { source?: 'menu' | 'planner' }) | ActiveSection;

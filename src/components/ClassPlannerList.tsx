@@ -1,8 +1,7 @@
-import SortablePlannerItem from './SortablePlannerItem.tsx';
+import ClassPlannerItem from './ClassPlannerItem.tsx';
 import ClassTitle from './ClassTitle.tsx';
 import { PlannedExercise } from '../types';
 import { Droppable } from '@hello-pangea/dnd';
-import { memo } from 'react';
 
 interface ClassPlannerListProps {
     plannedExercises: PlannedExercise[];
@@ -12,7 +11,7 @@ interface ClassPlannerListProps {
     onUpdateExercise: (id: string, updates: Partial<PlannedExercise>) => void;
 }
 
-export const ClassPlannerList = memo(function ClassPlannerListReal({ plannedExercises, onRemoveExercise, classTitle, onTitleChange, onUpdateExercise }: ClassPlannerListProps) {
+export const ClassPlannerList = function ClassPlannerListReal({ plannedExercises, onRemoveExercise, classTitle, onTitleChange, onUpdateExercise }: ClassPlannerListProps) {
     return (
         <Droppable droppableId="planner-droppable" type="EXERCISE">
             {(provided, snapshot) => (
@@ -36,7 +35,7 @@ export const ClassPlannerList = memo(function ClassPlannerListReal({ plannedExer
                         </div>
                     ) : (
                         plannedExercises.map((ex, index) => (
-                            <SortablePlannerItem
+                            <ClassPlannerItem
                                 exercise={ex}
                                 key={ex.id}
                                 index={index}
@@ -50,4 +49,4 @@ export const ClassPlannerList = memo(function ClassPlannerListReal({ plannedExer
             )}
         </Droppable>
     );
-});
+}

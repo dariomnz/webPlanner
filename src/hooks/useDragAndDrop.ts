@@ -1,19 +1,17 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useCallback, } from 'react';
 import { DropResult, DragStart } from '@hello-pangea/dnd';
-import { PlannedExercise, Exercise, Section, ActiveItem } from '../types';
+import { PlannedExercise, Exercise, Section } from '../types';
 import { createPlannedExercise } from '../utils/exerciseHelpers';
 
 interface UseDragAndDropProps {
-    plannedExercises: PlannedExercise[];
     setPlannedExercises: (exercises: PlannedExercise[] | ((prev: PlannedExercise[]) => PlannedExercise[])) => void;
     exercises: Exercise[];
     sections: Section[];
     isEditMode: boolean;
     onMoveExerciseToSection: (exerciseId: string, newSection: string) => void;
     onReorderSections: (sections: Section[], group: string) => void;
-    onReorderExercises?: (exercises: Exercise[]) => void;
-    onDragEndShowMenu?: () => void;
-    onActiveChange?: (id: string | null, source?: 'menu' | 'planner' | 'section') => void;
+    onReorderExercises: (exercises: Exercise[]) => void;
+    setIsMenuVisible: (state: boolean) => void;
 }
 
 function arrayMove<T>(array: T[], from: number, to: number): T[] {
@@ -24,7 +22,6 @@ function arrayMove<T>(array: T[], from: number, to: number): T[] {
 }
 
 export function useDragAndDrop({
-    plannedExercises,
     setPlannedExercises,
     exercises,
     sections,
@@ -32,96 +29,15 @@ export function useDragAndDrop({
     onMoveExerciseToSection,
     onReorderSections,
     onReorderExercises,
-    onDragEndShowMenu,
-    onActiveChange,
+    setIsMenuVisible,
 }: UseDragAndDropProps) {
-    const [activeId, setActiveId] = useState<string | null>(null);
-    const [activeItem, setActiveItem] = useState<ActiveItem | null>(null);
 
-    const stateRef = useRef({
-        plannedExercises,
-        setPlannedExercises,
-        exercises,
-        sections,
-        isEditMode,
-        onReorderExercises,
-        onReorderSections,
-        onMoveExerciseToSection,
-        onDragEndShowMenu,
-        onActiveChange,
-    });
-
-    useEffect(() => {
-        stateRef.current = {
-            plannedExercises,
-            setPlannedExercises,
-            exercises,
-            sections,
-            isEditMode,
-            onReorderExercises,
-            onReorderSections,
-            onMoveExerciseToSection,
-            onDragEndShowMenu,
-            onActiveChange,
-        };
-    });
-
-    const handleDragStart = useCallback((start: DragStart) => {
-        const { draggableId } = start;
-        const { exercises, plannedExercises, onActiveChange } = stateRef.current;
-
-        setActiveId(draggableId);
-
-        let source: 'menu' | 'planner' | 'section' | undefined;
-
-        if (draggableId.startsWith('menu-')) {
-            source = 'menu';
-            const id = draggableId.replace('menu-', '');
-            const exercise = exercises.find(e => e.id === id);
-            if (exercise) {
-                setActiveItem({ ...exercise, source: 'menu' });
-            }
-        } else if (draggableId.startsWith('section-')) {
-            source = 'section';
-            const idParts = draggableId.split('-');
-            const name = idParts[idParts.length - 1];
-            const group = idParts.slice(1, -1).join('-');
-            setActiveItem({
-                id: draggableId,
-                name: name,
-                section: name,
-                group: group,
-                source: 'section'
-            });
-        } else {
-            source = 'planner';
-            const exercise = plannedExercises.find(e => e.id === draggableId);
-            if (exercise) {
-                setActiveItem({ ...exercise, source: 'planner' });
-            }
-        }
-
-        onActiveChange?.(draggableId, source);
-    }, []);
+    const handleDragStart = useCallback((_result: DragStart) => {
+        setIsMenuVisible(false);
+    }, [setIsMenuVisible]);
 
     const handleDragEnd = useCallback((result: DropResult) => {
         const { source, destination, draggableId } = result;
-        const {
-            exercises,
-            sections,
-            isEditMode,
-            onReorderExercises,
-            onReorderSections,
-            onMoveExerciseToSection,
-            setPlannedExercises,
-            onDragEndShowMenu,
-            onActiveChange
-        } = stateRef.current;
-
-        // Reset state
-        setActiveId(null);
-        setActiveItem(null);
-        onActiveChange?.(null);
 
         if (!destination) {
             return;
@@ -146,7 +62,7 @@ export function useDragAndDrop({
                 });
 
                 setTimeout(() => {
-                    onDragEndShowMenu?.();
+                    setIsMenuVisible(true);
                 }, 50);
             }
         }
@@ -182,12 +98,10 @@ export function useDragAndDrop({
                 onMoveExerciseToSection(id, targetSection.name);
             }
         }
-    }, []);
+    }, [exercises, isEditMode, onMoveExerciseToSection, onReorderExercises, onReorderSections, sections, setIsMenuVisible, setPlannedExercises]);
 
     return {
-        activeId,
-        activeItem,
+        handleDragStart,
         handleDragEnd,
-        handleDragStart
     };
 }

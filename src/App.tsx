@@ -57,22 +57,9 @@ function App() {
         isEditMode,
     });
 
-    const [activeId, setActiveId] = useState<string | null>(null);
-    const [activeSource, setActiveSource] = useState<'menu' | 'planner' | 'section' | undefined>(undefined);
-
-    const onActiveChange = useCallback((id: string | null, source?: 'menu' | 'planner' | 'section') => {
-        setActiveId(id);
-        setActiveSource(source);
-    }, []);
-
-    const menuVisibility = useMenuVisibility({
-        isEditMode,
-        activeId,
-        activeItemSource: activeSource,
-    });
+    const menuVisibility = useMenuVisibility();
 
     const dragAndDrop = useDragAndDrop({
-        plannedExercises,
         setPlannedExercises,
         exercises,
         sections,
@@ -80,52 +67,51 @@ function App() {
         onMoveExerciseToSection: exerciseManagement.handleMoveExerciseToSection,
         onReorderSections: exerciseManagement.handleReorderSections,
         onReorderExercises: exerciseManagement.handleReorderExercises,
-        onDragEndShowMenu: menuVisibility.showMenuOnMobile,
-        onActiveChange
+        setIsMenuVisible: menuVisibility.setIsMenuVisible,
     });
 
     // Modal handlers
     const handleDeleteExerciseFromMenu = useCallback((id: string) => {
         setExerciseToDelete(id);
-    }, []);
+    }, [setExerciseToDelete]);
 
     const confirmDeleteExercise = useCallback(() => {
         if (exerciseToDelete) {
             exerciseManagement.handleDeleteExerciseFromMenu(exerciseToDelete);
             setExerciseToDelete(null);
         }
-    }, [exerciseToDelete, exerciseManagement]);
+    }, [exerciseToDelete, exerciseManagement, setExerciseToDelete]);
 
     const handleDeleteSection = useCallback((sectionName: string, group: string) => {
         setSectionToDelete({ name: sectionName, group });
-    }, []);
+    }, [setSectionToDelete]);
 
     const confirmDeleteSection = useCallback(() => {
         if (sectionToDelete) {
             exerciseManagement.handleDeleteSection(sectionToDelete.name, sectionToDelete.group);
             setSectionToDelete(null);
         }
-    }, [sectionToDelete, exerciseManagement]);
+    }, [sectionToDelete, exerciseManagement, setSectionToDelete]);
 
     const handleDeleteGroup = useCallback((group: string) => {
         setGroupToDelete(group);
-    }, []);
+    }, [setGroupToDelete]);
 
     const confirmDeleteGroup = useCallback(() => {
         if (groupToDelete) {
             exerciseManagement.handleDeleteGroup(groupToDelete);
             setGroupToDelete(null);
         }
-    }, [groupToDelete, exerciseManagement]);
+    }, [groupToDelete, exerciseManagement, setGroupToDelete]);
 
     const handleClearAll = useCallback(() => {
         setIsClearModalOpen(true);
-    }, []);
+    }, [setIsClearModalOpen]);
 
     const confirmClearAll = useCallback(() => {
         exerciseManagement.handleClearAll();
         setIsClearModalOpen(false);
-    }, [exerciseManagement]);
+    }, [exerciseManagement, setIsClearModalOpen]);
 
     const handleExport = useCallback(() => {
         exportClassPlan(classTitle, plannedExercises);
@@ -186,7 +172,7 @@ function App() {
             console.error('Error importing exercises:', error);
             alert('Error al leer el archivo.');
         }
-    }, []);
+    }, [setPendingImportData, setIsImportModalOpen]);
 
     const confirmImport = useCallback(() => {
         if (pendingImportData) {
@@ -196,21 +182,21 @@ function App() {
             setPendingImportData(null);
             setIsImportModalOpen(false);
         }
-    }, [pendingImportData, setExercises, setSections, setGroups]);
+    }, [pendingImportData, setExercises, setSections, setGroups, setPendingImportData, setIsImportModalOpen]);
 
-    const handleShowHeart = useCallback(() => setShowHeartAnimation(true), []);
-    const handleHideHeart = useCallback(() => setShowHeartAnimation(false), []);
+    const handleShowHeart = useCallback(() => setShowHeartAnimation(true), [setShowHeartAnimation]);
+    const handleHideHeart = useCallback(() => setShowHeartAnimation(false), [setShowHeartAnimation]);
     const handleCloseImportModal = useCallback(() => {
         setIsImportModalOpen(false);
         setPendingImportData(null);
-    }, []);
-    const handleCloseClearModal = useCallback(() => setIsClearModalOpen(false), []);
-    const handleCloseDeleteExerciseModal = useCallback(() => setExerciseToDelete(null), []);
-    const handleCloseDeleteSectionModal = useCallback(() => setSectionToDelete(null), []);
-    const handleCloseDeleteGroupModal = useCallback(() => setGroupToDelete(null), []);
+    }, [setIsImportModalOpen, setPendingImportData]);
+    const handleCloseClearModal = useCallback(() => setIsClearModalOpen(false), [setIsClearModalOpen]);
+    const handleCloseDeleteExerciseModal = useCallback(() => setExerciseToDelete(null), [setExerciseToDelete]);
+    const handleCloseDeleteSectionModal = useCallback(() => setSectionToDelete(null), [setSectionToDelete]);
+    const handleCloseDeleteGroupModal = useCallback(() => setGroupToDelete(null), [setGroupToDelete]);
 
     return (
-        <DragDropContext onDragStart={dragAndDrop.handleDragStart} onDragEnd={dragAndDrop.handleDragEnd}>
+        <DragDropContext onDragEnd={dragAndDrop.handleDragEnd}>
             <div className="flex flex-col md:flex-row h-dvh w-screen font-sans text-gray-900 overflow-hidden">
                 <ExerciseMenu
                     exercises={exercises}
