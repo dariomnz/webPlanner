@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Edit2, Check } from 'lucide-react';
+import { Edit2, Check } from './Icons';
 
 interface ClassTitleProps {
     title: string;

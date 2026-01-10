@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Plus, FolderPlus } from 'lucide-react';
+import { Plus, FolderPlus } from '../Icons';
 
 interface SectionManagerProps {
     selectedGroup: string;

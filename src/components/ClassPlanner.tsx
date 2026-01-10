@@ -1,7 +1,7 @@
 import { useRef, useState, useCallback } from 'react';
 import { ClassPlannerList } from './ClassPlannerList.tsx';
 import { PlannedExercise } from '../types';
-import { Trash2, Download, Upload } from 'lucide-react';
+import { Trash2, Download, Upload } from './Icons';
 import BalletIcon from '../assets/ballerina.svg?react';
 
 

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Plus, ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
+import { Plus, ChevronDown, ChevronRight, Trash2 } from '../Icons';
 import { Exercise } from '../../types';
 import { DraggableExercise } from './DraggableExercise';
 import { Droppable, Draggable } from '@hello-pangea/dnd';

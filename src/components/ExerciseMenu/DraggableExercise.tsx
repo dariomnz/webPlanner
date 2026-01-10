@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
-import { ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronRight, Trash2 } from '../Icons';
 import { Exercise } from '../../types';
 import { Draggable } from '@hello-pangea/dnd';
 import { AutoResizeTextarea } from '../Common/AutoResizeTextarea';

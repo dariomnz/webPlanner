@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import { Calendar, Pencil, Download, Upload } from 'lucide-react';
+import { Calendar, Pencil, Download, Upload } from '../Icons';
 import { Exercise, Section as SectionType } from '../../types';
 import { Section } from './Section';
 import { GroupSelector } from './GroupSelector';

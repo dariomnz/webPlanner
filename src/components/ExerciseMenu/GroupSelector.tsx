@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Plus, Tag, Trash2, ChevronDown } from 'lucide-react';
+import { Plus, Tag, Trash2, ChevronDown } from '../Icons';
 
 interface GroupSelectorProps {
     groups: string[];

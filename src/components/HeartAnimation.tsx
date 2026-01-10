@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Heart } from 'lucide-react';
+import { Heart } from './Icons';
 import BalletIcon from '../assets/ballerina.svg?react';
 
 interface HeartAnimationProps {

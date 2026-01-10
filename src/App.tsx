@@ -8,7 +8,7 @@ import ClassPlanner from './components/ClassPlanner.tsx';
 import ConfirmationModal from './components/ConfirmationModal.tsx';
 import HeartAnimation from './components/HeartAnimation.tsx';
 import { Exercise, PlannedExercise, Section } from './types';
-import { X, Menu, Heart } from 'lucide-react';
+import { X, Menu, Heart } from './components/Icons';
 import { exportClassPlan, exportDataToJson, importDataFromJson, importClassPlan } from './utils/exportUtils';
 import { DragDropContext } from '@hello-pangea/dnd';
 

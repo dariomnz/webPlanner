@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { X, AlertTriangle } from 'lucide-react';
+import { X, AlertTriangle } from './Icons';
 
 interface ConfirmationModalProps {
     isOpen: boolean;
