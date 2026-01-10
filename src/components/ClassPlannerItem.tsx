@@ -1,7 +1,8 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, FocusEvent } from 'react';
 import { Trash2, ChevronDown, ChevronRight } from 'lucide-react';
 import { PlannedExercise } from '../types';
 import { Draggable } from '@hello-pangea/dnd';
+import { AutoResizeTextarea } from './Common/AutoResizeTextarea';
 
 interface SortablePlannerItemProps {
     exercise: PlannedExercise;
@@ -14,6 +15,14 @@ export default function ClassPlannerItem({ exercise, index, onRemove, onUpdateEx
     const { id, name, section, description } = exercise;
     const [isEditing, setIsEditing] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    const handleBlur = useCallback((e: FocusEvent) => {
+        if (containerRef.current && containerRef.current.contains(e.relatedTarget as Node)) {
+            return;
+        }
+        setIsEditing(false);
+    }, []);
 
     const handleNameChange = useCallback((newName: string) => {
         onUpdateExercise(id, { name: newName });
@@ -38,9 +47,10 @@ export default function ClassPlannerItem({ exercise, index, onRemove, onUpdateEx
                         bg-white border rounded-xl p-2 mb-1 shadow-sm group
                         ${snapshot.isDragging ? 'shadow-xl ring-2 ring-pink-500 z-50' : 'border-pink-100'}
                     `}
+                    onDoubleClick={() => { if (!isEditing) setIsEditing(true) }}
                 >
-                    <div className="flex items-center gap-2">
-                        {exercise.description && (
+                    <div className="flex items-center gap-2" >
+                        {!isEditing && exercise.description && (
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
@@ -53,48 +63,41 @@ export default function ClassPlannerItem({ exercise, index, onRemove, onUpdateEx
                             </button>
                         )}
                         <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
+                            {!isEditing && <div className="flex items-center gap-2 mb-1">
                                 <span className="text-xs font-bold text-pink-400 tracking-wider">{section}</span>
-                            </div>
+                            </div>}
 
                             {isEditing ? (
-                                <div className="space-y-3 mt-2">
+                                <div ref={containerRef} className="space-y-3 mt-2">
                                     <div>
                                         <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Nombre del ejercicio</label>
-                                        <input
-                                            type="text"
+                                        <AutoResizeTextarea
                                             value={name}
                                             onChange={(e) => handleNameChange(e.target.value)}
+                                            onBlur={handleBlur}
                                             className="w-full text-lg font-medium text-pink-950 bg-pink-50/50 border border-pink-100 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-200"
                                             autoFocus
-                                            onBlur={() => {
-                                                // Small delay to allow clicking other inputs
-                                                setTimeout(() => {
-                                                    if (document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
-                                                        // setIsEditing(false);
-                                                    }
-                                                }, 100);
-                                            }}
                                         />
                                     </div>
 
                                     <div>
                                         <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Sección / Categoría</label>
-                                        <input
-                                            type="text"
+                                        <AutoResizeTextarea
                                             value={section}
                                             onChange={(e) => handleSectionChange(e.target.value)}
+                                            onBlur={handleBlur}
                                             className="w-full text-sm font-medium text-pink-900/70 bg-pink-50/50 border border-pink-100 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-pink-200"
                                         />
                                     </div>
 
                                     <div>
                                         <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Notas / Descripción</label>
-                                        <textarea
+                                        <AutoResizeTextarea
                                             value={description || ''}
                                             onChange={(e) => handleDescriptionChange(e.target.value)}
+                                            onBlur={handleBlur}
                                             placeholder="Añade notas sobre este ejercicio..."
-                                            className="w-full text-sm text-gray-600 bg-pink-50/50 border border-pink-100 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-200 min-h-[80px] resize-y"
+                                            className="w-full text-sm text-gray-600 bg-pink-50/50 border border-pink-100 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-200 min-h-[40px]"
                                         />
                                     </div>
 
@@ -107,7 +110,7 @@ export default function ClassPlannerItem({ exercise, index, onRemove, onUpdateEx
                                 </div>
                             ) : (
                                 <div className="flex flex-col gap-1">
-                                    <h3 className="text-lg font-medium text-pink-950 leading-tight break-words" onClick={() => setIsEditing(true)}>
+                                    <h3 className="text-lg font-medium text-pink-950 leading-tight break-words">
                                         {name}
                                     </h3>
                                 </div>
@@ -119,7 +122,7 @@ export default function ClassPlannerItem({ exercise, index, onRemove, onUpdateEx
                             className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
                             title="Eliminar de la clase"
                         >
-                            <Trash2 size={18} />
+                            <Trash2 size={16} />
                         </button>}
                     </div>
 

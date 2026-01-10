@@ -3,6 +3,7 @@ import { Plus, ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
 import { Exercise } from '../../types';
 import { DraggableExercise } from './DraggableExercise';
 import { Droppable, Draggable } from '@hello-pangea/dnd';
+import { AutoResizeTextarea } from '../Common/AutoResizeTextarea';
 
 interface SectionProps {
     title: string;
@@ -11,8 +12,8 @@ interface SectionProps {
     onAddExercise: (name: string, section: string, group: string) => void;
     onAddToPlan: (exercise: Exercise) => void;
     onDeleteExercise: (id: string) => void;
-    onDeleteSection?: (section: string) => void;
-    onRenameSection?: (oldName: string, newName: string) => void;
+    onDeleteSection: (section: string) => void;
+    onRenameSection: (oldName: string, newName: string) => void;
     onRenameExercise: (id: string, newName: string) => void;
     onUpdateExercise: (id: string, updates: Partial<Exercise>) => void;
     isEditMode: boolean;
@@ -51,28 +52,20 @@ export const Section = function Section({
     }, [newExercise, onAddExercise, title, currentGroup]);
 
     const handleSectionDoubleClick = useCallback((e: React.MouseEvent) => {
-        if (isEditMode && onRenameSection) {
+        if (isEditMode) {
             e.stopPropagation();
             setIsRenamingSection(true);
         }
-    }, [isEditMode, onRenameSection]);
+    }, [isEditMode, setIsRenamingSection]);
 
     const handleSectionRenameSubmit = useCallback(() => {
-        if (newSectionName.trim() && newSectionName !== title && onRenameSection) {
+        if (newSectionName.trim() && newSectionName !== title) {
             onRenameSection(title, newSectionName.trim());
         }
         setIsRenamingSection(false);
         setNewSectionName(title);
-    }, [newSectionName, title, onRenameSection]);
+    }, [newSectionName, title, onRenameSection, setIsRenamingSection, setNewSectionName]);
 
-    const handleSectionKeyDown = useCallback((e: React.KeyboardEvent) => {
-        if (e.key === 'Enter') {
-            handleSectionRenameSubmit();
-        } else if (e.key === 'Escape') {
-            setIsRenamingSection(false);
-            setNewSectionName(title);
-        }
-    }, [handleSectionRenameSubmit, title]);
 
     return (
         <Draggable draggableId={sectionId} index={index} isDragDisabled={!isEditMode || isRenamingSection}>
@@ -88,27 +81,45 @@ export const Section = function Section({
                         onClick={() => setIsOpen(!isOpen)}
                         onDoubleClick={handleSectionDoubleClick}
                     >
-                        <div className="flex items-center text-pink-900 font-semibold">
-                            {isOpen ? <ChevronDown className="w-4 h-4 mr-1" /> : <ChevronRight className="w-4 h-4 mr-1" />}
-                            {isRenamingSection ? (
-                                <input
-                                    type="text"
-                                    value={newSectionName}
-                                    onChange={(e) => setNewSectionName(e.target.value)}
-                                    onBlur={handleSectionRenameSubmit}
-                                    onKeyDown={handleSectionKeyDown}
-                                    className="px-2 py-0.5 text-sm border border-pink-300 rounded focus:outline-none focus:ring-1 focus:ring-pink-400"
-                                    autoFocus
-                                    onClick={(e) => e.stopPropagation()}
-                                />
-                            ) : (
-                                <span>{title}</span>
+                        <div className={`flex flex-col text-pink-900 font-semibold w-full ${isRenamingSection ? 'p-2' : ''}`}>
+                            <div className="flex items-center">
+                                {!isRenamingSection && (
+                                    <>
+                                        {isOpen ? <ChevronDown className="w-4 h-4 mr-1" /> : <ChevronRight className="w-4 h-4 mr-1" />}
+                                        <span>{title}</span>
+                                        <span className="ml-2 text-xs text-pink-400 font-normal bg-white px-2 py-0.5 rounded-full border border-pink-100">
+                                            {exercises.length}
+                                        </span>
+                                    </>
+                                )}
+                            </div>
+
+                            {isRenamingSection && (
+                                <div className="mt-2 space-y-3 w-full" onClick={(e) => e.stopPropagation()}>
+                                    <div>
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Nombre de la sección</label>
+                                        <AutoResizeTextarea
+                                            value={newSectionName}
+                                            onChange={(e) => setNewSectionName(e.target.value)}
+                                            onBlur={handleSectionRenameSubmit}
+                                            className="w-full px-3 py-2 text-sm bg-white border border-pink-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-200"
+                                            autoFocus
+                                            rows={1}
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleSectionRenameSubmit();
+                                        }}
+                                        className="w-full bg-pink-500 text-white text-sm font-bold py-2 rounded-lg hover:bg-pink-600 transition-colors shadow-sm"
+                                    >
+                                        Guardar Cambios
+                                    </button>
+                                </div>
                             )}
-                            <span className="ml-2 text-xs text-pink-400 font-normal bg-white px-2 py-0.5 rounded-full border border-pink-100">
-                                {exercises.length}
-                            </span>
                         </div>
-                        {isEditMode && (
+                        {isEditMode && !isRenamingSection && (
                             <div className="flex items-center">
                                 <button
                                     onClick={(e) => {
@@ -121,24 +132,22 @@ export const Section = function Section({
                                 >
                                     <Plus className="w-4 h-4" />
                                 </button>
-                                {onDeleteSection && (
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onDeleteSection(title);
-                                        }}
-                                        className="p-1 text-gray-400 hover:text-red-500 hover:bg-white rounded transition-all ml-1"
-                                        title="Eliminar sección"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </button>
-                                )}
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onDeleteSection(title);
+                                    }}
+                                    className="p-1 text-gray-400 hover:text-red-500 hover:bg-white rounded transition-all ml-1"
+                                    title="Eliminar sección"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </button>
                             </div>
                         )}
                     </div>
 
                     {isOpen && (
-                        <Droppable droppableId={`droppable-section-${currentGroup}-${title}`} type="EXERCISE">
+                        <Droppable droppableId={`droppable-section-${currentGroup}-${title}`} type="EXERCISE" isDropDisabled={!isEditMode}>
                             {(exerciseProvided, exerciseSnapshot) => (
                                 <div
                                     ref={exerciseProvided.innerRef}
@@ -153,6 +162,7 @@ export const Section = function Section({
                                                 onChange={(e) => setNewExercise(e.target.value)}
                                                 placeholder="Nombre del ejercicio..."
                                                 className="flex-1 min-w-0 px-2 py-1 text-sm rounded border border-pink-200 focus:outline-none focus:ring-1 focus:ring-pink-400"
+                                                onFocus={(e) => e.target.setSelectionRange(e.target.value.length, e.target.value.length)}
                                                 autoFocus
                                             />
                                             <button

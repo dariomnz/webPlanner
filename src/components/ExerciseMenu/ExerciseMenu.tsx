@@ -159,7 +159,7 @@ const ExerciseMenu = function ExerciseMenu({
                 />
             </div>
 
-            <Droppable droppableId="section-list" type="SECTION">
+            <Droppable droppableId="section-list" type="SECTION" isDropDisabled={!isEditMode}>
                 {(provided) => (
                     <div
                         ref={provided.innerRef}

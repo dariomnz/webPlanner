@@ -96,6 +96,7 @@ export function GroupSelector({
                             onChange={(e) => setNewGroup(e.target.value)}
                             placeholder="Ej: Ballet, Contemporáneo..."
                             className="flex-1 min-w-0 px-2 py-1 text-xs rounded border border-pink-200 focus:outline-none focus:ring-1 focus:ring-pink-400 bg-white"
+                            onFocus={(e) => e.target.setSelectionRange(e.target.value.length, e.target.value.length)}
                             autoFocus
                         />
                         <button

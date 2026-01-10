@@ -45,6 +45,7 @@ export default function ClassTitle({ title, onTitleChange }: ClassTitleProps) {
                         onBlur={handleSave}
                         placeholder="Nombre de la clase (opcional)"
                         className="w-full px-4 py-2 text-xl font-serif font-medium text-pink-950 bg-white border-2 border-pink-300 rounded-lg focus:outline-none focus:border-pink-500 transition-colors"
+                        onFocus={(e) => e.target.setSelectionRange(e.target.value.length, e.target.value.length)}
                         autoFocus
                     />
                     <button

@@ -51,6 +51,7 @@ export function SectionManager({
                             onChange={(e) => setNewSection(e.target.value)}
                             placeholder="Ej: Brazos, Core..."
                             className="flex-1 min-w-0 px-2 py-1 text-sm rounded border border-pink-200 focus:outline-none focus:ring-1 focus:ring-pink-400 bg-white"
+                            onFocus={(e) => e.target.setSelectionRange(e.target.value.length, e.target.value.length)}
                             autoFocus
                         />
                         <button

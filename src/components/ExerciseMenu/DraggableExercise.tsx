@@ -1,7 +1,8 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
 import { Exercise } from '../../types';
 import { Draggable } from '@hello-pangea/dnd';
+import { AutoResizeTextarea } from '../Common/AutoResizeTextarea';
 
 interface DraggableExerciseProps {
     exercise: Exercise;
@@ -32,12 +33,6 @@ export const DraggableExercise = function DraggableExercise({
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const nameRef = useRef<HTMLTextAreaElement>(null);
 
-    const updateTextareaSize = useCallback((ref: { current: HTMLTextAreaElement | null }) => {
-        if (ref.current) {
-            ref.current.style.height = 'auto';
-            ref.current.style.height = `${ref.current.scrollHeight}px`;
-        }
-    }, []);
 
     // Sync local state with exercise props when they change (synchronization during render)
     const [prevName, setPrevName] = useState(name);
@@ -50,14 +45,6 @@ export const DraggableExercise = function DraggableExercise({
         setNewDescription(description || '');
     }
 
-    // Auto-resize textarea
-    useEffect(() => {
-        updateTextareaSize(textareaRef);
-    }, [isRenaming, newDescription, updateTextareaSize]);
-
-    useEffect(() => {
-        updateTextareaSize(nameRef);
-    }, [isRenaming, newName, updateTextareaSize]);
 
     const handleDoubleClick = useCallback((e: React.MouseEvent) => {
         if (isEditMode) {
@@ -77,17 +64,6 @@ export const DraggableExercise = function DraggableExercise({
         setNewName(name);
         setNewDescription(description || '');
     }, [newName, name, onRename, id, newDescription, description, onUpdate]);
-
-    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' && e.target !== textareaRef.current) {
-            e.preventDefault();
-            handleRenameSubmit();
-        } else if (e.key === 'Escape') {
-            setIsRenaming(false);
-            setNewName(name);
-            setNewDescription(description || '');
-        }
-    }, [handleRenameSubmit, name, description]);
 
     const handleBlur = useCallback((e: React.FocusEvent) => {
         if (formRef.current && formRef.current.contains(e.relatedTarget as Node)) {
@@ -113,27 +89,40 @@ export const DraggableExercise = function DraggableExercise({
                 >
                     <div className="flex items-center w-full">
                         {isRenaming ? (
-                            <div ref={formRef} className="flex-1 flex flex-col gap-1">
-                                <textarea
-                                    ref={nameRef}
-                                    value={newName}
-                                    onChange={(e) => setNewName(e.target.value)}
-                                    onBlur={handleBlur}
-                                    onKeyDown={handleKeyDown}
-                                    className="w-full px-1 py-0.5 text-sm border border-pink-300 rounded focus:outline-none focus:ring-1 focus:ring-pink-400 resize-none overflow-hidden"
-                                    autoFocus
-                                    placeholder="Nombre del ejercicio"
-                                    rows={1}
-                                />
-                                <textarea
-                                    ref={textareaRef}
-                                    value={newDescription}
-                                    onChange={(e) => setNewDescription(e.target.value)}
-                                    onBlur={handleBlur}
-                                    onKeyDown={handleKeyDown}
-                                    className="w-full px-1 py-0.5 text-xs border border-pink-300 rounded focus:outline-none focus:ring-1 focus:ring-pink-400 resize-none overflow-hidden"
-                                    placeholder="Descripción (opcional)"
-                                />
+                            <div ref={formRef} className="flex-1 flex flex-col space-y-3 mt-1">
+                                <div>
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Nombre del ejercicio</label>
+                                    <AutoResizeTextarea
+                                        ref={nameRef}
+                                        value={newName}
+                                        onChange={(e) => setNewName(e.target.value)}
+                                        onBlur={handleBlur}
+                                        className="w-full px-3 py-2 text-sm bg-pink-50/50 border border-pink-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-200"
+                                        autoFocus
+                                        placeholder="Nombre del ejercicio"
+                                        rows={1}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Descripción (opcional)</label>
+                                    <AutoResizeTextarea
+                                        ref={textareaRef}
+                                        value={newDescription}
+                                        onChange={(e) => setNewDescription(e.target.value)}
+                                        onBlur={handleBlur}
+                                        className="w-full px-3 py-2 text-xs bg-pink-50/50 border border-pink-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-200"
+                                        placeholder="Añade una descripción..."
+                                    />
+                                </div>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleRenameSubmit();
+                                    }}
+                                    className="w-full bg-pink-500 text-white text-sm font-bold py-2 rounded-lg hover:bg-pink-600 transition-colors shadow-sm"
+                                >
+                                    Guardar Cambios
+                                </button>
                             </div>
                         ) : (
                             <div className="flex-1 min-w-0 flex items-center justify-between">
