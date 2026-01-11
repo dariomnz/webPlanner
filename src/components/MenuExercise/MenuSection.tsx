@@ -1,12 +1,12 @@
 import { useState, useCallback, useMemo } from 'react';
-import { Plus, ChevronDown, ChevronRight, Trash2 } from '../Icons';
-import { Section } from '../../types';
-import DraggableExercise from './DraggableExercise';
+import { Plus, ChevronDown, ChevronRight, Trash2 } from '../Common/Icons';
+import { Section } from '../../types/exercise';
+import MenuExerciseItem from './MenuExerciseItem';
 import { Droppable, Draggable } from '@hello-pangea/dnd';
 import { AutoResizeTextarea } from '../Common/AutoResizeTextarea';
 import { dataStore } from '../../store/DataStore';
 import { createExercise } from '../../utils/exerciseHelpers';
-import ConfirmationModal from '../ConfirmationModal';
+import ConfirmationModal from '../Common/ConfirmationModal';
 import { useStoreItem } from '../../hooks/useDataStore';
 
 interface SectionProps {
@@ -185,7 +185,7 @@ export default function MenuSection({
                                         )}
 
                                         {filteredExercises.map((ex, exIndex) => (
-                                            <DraggableExercise
+                                            <MenuExerciseItem
                                                 key={ex.id}
                                                 index={exIndex}
                                                 exerciseId={ex.id}

@@ -1,9 +1,9 @@
 import { useState, useCallback, useRef, FocusEvent } from 'react';
-import { Trash2, ChevronDown, ChevronRight } from './Icons';
+import { Trash2, ChevronDown, ChevronRight } from '../Common/Icons';
 import { Draggable } from '@hello-pangea/dnd';
-import { AutoResizeTextarea } from './Common/AutoResizeTextarea';
-import { useStoreItem } from '../hooks/useDataStore';
-import { dataStore } from '../store/DataStore';
+import { AutoResizeTextarea } from '../Common/AutoResizeTextarea';
+import { useStoreItem } from '../../hooks/useDataStore';
+import { dataStore } from '../../store/DataStore';
 
 interface SortablePlannerItemProps {
     isEditMode: boolean;

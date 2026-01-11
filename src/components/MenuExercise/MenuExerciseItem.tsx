@@ -1,23 +1,23 @@
 import { useState, useRef, useCallback } from 'react';
-import { ChevronDown, ChevronRight, Trash2 } from '../Icons';
+import { ChevronDown, ChevronRight, Trash2 } from '../Common/Icons';
 import { Draggable } from '@hello-pangea/dnd';
 import { AutoResizeTextarea } from '../Common/AutoResizeTextarea';
 import { useStoreItem } from '../../hooks/useDataStore';
 import { dataStore } from '../../store/DataStore';
 import { createPlannedExercise } from '../../utils/exerciseHelpers';
-import ConfirmationModal from '../ConfirmationModal';
+import ConfirmationModal from '../Common/ConfirmationModal';
 
-interface DraggableExerciseProps {
+interface MenuExerciseItemProps {
     exerciseId: string;
     index: number;
     isEditMode: boolean;
 }
 
-export default function DraggableExercise({
+export default function MenuExerciseItem({
     exerciseId,
     index,
     isEditMode
-}: DraggableExerciseProps) {
+}: MenuExerciseItemProps) {
     const exercise = useStoreItem(exerciseId, () => dataStore.getExercise(exerciseId));
 
     const [isEditing, setIsEditing] = useState(false);

@@ -11,13 +11,8 @@ export interface Section {
     group: string;
 }
 
+export interface Group {
+    name: string;
+}
 
 export type PlannedExercise = Exercise;
-
-export interface ActiveSection {
-    id: string;
-    name: string;
-    section: string;
-    group: string;
-    source: 'section';
-}

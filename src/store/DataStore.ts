@@ -1,5 +1,5 @@
 import { SetStateAction } from 'react';
-import { Exercise, PlannedExercise, Section } from '../types';
+import { Exercise, PlannedExercise, Section } from '../types/exercise';
 
 type Listener = () => void;
 

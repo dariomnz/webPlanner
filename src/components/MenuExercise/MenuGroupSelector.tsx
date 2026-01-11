@@ -1,21 +1,21 @@
 import { useState, useCallback } from 'react';
-import { Plus, Tag, Trash2, ChevronDown } from '../Icons';
+import { Plus, Tag, Trash2, ChevronDown } from '../Common/Icons';
 import { dataStore } from '../../store/DataStore';
-import ConfirmationModal from '../ConfirmationModal';
+import ConfirmationModal from '../Common/ConfirmationModal';
 
-interface GroupSelectorProps {
+interface MenuGroupSelectorProps {
     groups: string[];
     selectedGroup: string;
     onSelectGroup: (group: string) => void;
     isEditMode: boolean;
 }
 
-export default function GroupSelector({
+export default function MenuGroupSelector({
     groups,
     selectedGroup,
     onSelectGroup,
     isEditMode
-}: GroupSelectorProps) {
+}: MenuGroupSelectorProps) {
     const [newGroup, setNewGroup] = useState('');
     const [isAddingGroup, setIsAddingGroup] = useState(false);
     const [groupToDelete, setGroupToDelete] = useState<string | null>(null);

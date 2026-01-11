@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Heart } from './Icons';
-import BalletIcon from '../assets/ballerina.svg?react';
+import { Heart, BalletIcon } from './Icons';
 
 interface Particle {
     x: number;

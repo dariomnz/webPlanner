@@ -1,16 +1,16 @@
 import { useState, useCallback } from 'react';
-import { Plus, FolderPlus } from '../Icons';
+import { Plus, FolderPlus } from '../Common/Icons';
 import { dataStore } from '../../store/DataStore';
 
-interface SectionManagerProps {
+interface MenuSectionManagerProps {
     selectedGroup: string;
     isEditMode: boolean;
 }
 
-export default function SectionManager({
+export default function MenuSectionManager({
     selectedGroup,
     isEditMode
-}: SectionManagerProps) {
+}: MenuSectionManagerProps) {
     const [newSection, setNewSection] = useState('');
     const [isAddingSection, setIsAddingSection] = useState(false);
 

@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
-import { Edit2, Check } from './Icons';
-import { useStoreItem } from '../hooks/useDataStore';
-import { dataStore } from '../store/DataStore';
+import { Edit2, Check } from '../Common/Icons';
+import { useStoreItem } from '../../hooks/useDataStore';
+import { dataStore } from '../../store/DataStore';
 
 export default function ClassTitle() {
     const title = useStoreItem('class-title', () => dataStore.getClassTitle());

@@ -1,4 +1,4 @@
-import { Exercise, PlannedExercise, Section } from '../types';
+import { Exercise, PlannedExercise, Section } from '../types/exercise';
 
 interface BackupData {
     exercises: Exercise[];

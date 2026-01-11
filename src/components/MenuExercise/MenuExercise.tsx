@@ -1,27 +1,27 @@
 import { useState, useMemo, useCallback } from 'react';
-import { Calendar, Pencil, Download, Upload } from '../Icons';
+import { Calendar, Pencil, Download, Upload } from '../Common/Icons';
 import MenuSection from './MenuSection';
-import GroupSelector from './GroupSelector';
-import SectionManager from './SectionManager';
+import MenuGroupSelector from './MenuGroupSelector';
+import MenuSectionManager from './MenuSectionManager';
 import { Droppable } from '@hello-pangea/dnd';
 import { useStoreItem } from '../../hooks/useDataStore';
 import { dataStore } from '../../store/DataStore';
-import { Exercise, PlannedExercise, Section } from '../../types';
+import { Exercise, PlannedExercise, Section } from '../../types/exercise';
 import { exportDataToJson, importDataFromJson } from '../../utils/exportUtils';
-import ConfirmationModal from '../ConfirmationModal';
+import ConfirmationModal from '../Common/ConfirmationModal';
 
-interface ExerciseMenuProps {
+interface MenuExerciseProps {
     isEditMode: boolean;
     onEditModeChange: (isEditMode: boolean) => void;
     isVisible: boolean;
 }
 
 const DEFAULT_GROUP = 'General';
-export default function ExerciseMenu({
+export default function MenuExercise({
     isEditMode,
     onEditModeChange,
     isVisible,
-}: ExerciseMenuProps) {
+}: MenuExerciseProps) {
     const [selectedGroup, setSelectedGroup] = useState<string>(DEFAULT_GROUP);
     const groups = useStoreItem('groups', () => dataStore.getGroups());
     const sections = useStoreItem('sections', () => dataStore.getSections());
@@ -154,7 +154,7 @@ export default function ExerciseMenu({
                     </div>
 
                     {/* Selector de grupos */}
-                    <GroupSelector
+                    <MenuGroupSelector
                         groups={groups}
                         selectedGroup={selectedGroup}
                         onSelectGroup={setSelectedGroup}
@@ -162,7 +162,7 @@ export default function ExerciseMenu({
                     />
 
                     {/* Gestor de secciones */}
-                    <SectionManager
+                    <MenuSectionManager
                         selectedGroup={selectedGroup}
                         isEditMode={isEditMode}
                     />

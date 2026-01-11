@@ -1,10 +1,10 @@
 import { useRef, useState, useCallback } from 'react';
 import ClassPlannerList from './ClassPlannerList.tsx';
-import { Trash2, Download, Upload, BalletIcon } from './Icons';
-import { dataStore } from '../store/DataStore.ts';
-import ConfirmationModal from './ConfirmationModal.tsx';
-import { exportClassPlan, importClassPlan } from '../utils/exportUtils.ts';
-import { useStoreItem } from '../hooks/useDataStore.ts';
+import { Trash2, Download, Upload, BalletIcon } from '../Common/Icons.tsx';
+import { dataStore } from '../../store/DataStore.ts';
+import ConfirmationModal from '../Common/ConfirmationModal.tsx';
+import { exportClassPlan, importClassPlan } from '../../utils/exportUtils.ts';
+import { useStoreItem } from '../../hooks/useDataStore.ts';
 
 
 interface ClassPlannerProps {

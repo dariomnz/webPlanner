@@ -1,8 +1,8 @@
 import ClassPlannerItem from './ClassPlannerItem.tsx';
 import ClassTitle from './ClassTitle.tsx';
 import { Droppable } from '@hello-pangea/dnd';
-import { useStoreItem } from '../hooks/useDataStore.ts';
-import { dataStore } from '../store/DataStore.ts';
+import { useStoreItem } from '../../hooks/useDataStore.ts';
+import { dataStore } from '../../store/DataStore.ts';
 
 interface ClassPlannerListProps {
     isEditMode: boolean;

@@ -1,4 +1,4 @@
-import { Exercise, PlannedExercise } from '../types';
+import { Exercise, PlannedExercise } from '../types/exercise';
 
 /**
  * Creates a new exercise with a unique ID
