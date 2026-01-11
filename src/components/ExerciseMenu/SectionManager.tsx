@@ -1,15 +1,14 @@
 import { useState, useCallback } from 'react';
 import { Plus, FolderPlus } from '../Icons';
+import { dataStore } from '../../store/DataStore';
 
 interface SectionManagerProps {
     selectedGroup: string;
-    onAddSection: (sectionName: string, group: string) => void;
     isEditMode: boolean;
 }
 
-export function SectionManager({
+export default function SectionManager({
     selectedGroup,
-    onAddSection,
     isEditMode
 }: SectionManagerProps) {
     const [newSection, setNewSection] = useState('');
@@ -18,11 +17,11 @@ export function SectionManager({
     const handleAddSectionSubmit = useCallback((e: React.FormEvent) => {
         e.preventDefault();
         if (newSection.trim()) {
-            onAddSection(newSection.trim(), selectedGroup);
+            dataStore.addSection(newSection.trim(), selectedGroup);
             setNewSection('');
             setIsAddingSection(false);
         }
-    }, [newSection, onAddSection, selectedGroup]);
+    }, [newSection, selectedGroup]);
 
     const handleToggleAdding = useCallback(() => {
         setIsAddingSection(prev => !prev);

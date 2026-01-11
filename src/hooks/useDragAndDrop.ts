@@ -1,16 +1,10 @@
 import { useCallback, } from 'react';
 import { DropResult, DragStart } from '@hello-pangea/dnd';
-import { PlannedExercise, Exercise, Section } from '../types';
+import { dataStore } from '../store/DataStore';
 import { createPlannedExercise } from '../utils/exerciseHelpers';
 
 interface UseDragAndDropProps {
-    setPlannedExercises: (exercises: PlannedExercise[] | ((prev: PlannedExercise[]) => PlannedExercise[])) => void;
-    exercises: Exercise[];
-    sections: Section[];
     isEditMode: boolean;
-    onMoveExerciseToSection: (exerciseId: string, newSection: string) => void;
-    onReorderSections: (sections: Section[], group: string) => void;
-    onReorderExercises: (exercises: Exercise[]) => void;
     setIsMenuVisible: (state: boolean) => void;
 }
 
@@ -21,22 +15,48 @@ function arrayMove<T>(array: T[], from: number, to: number): T[] {
     return newArray;
 }
 
+
+function onMoveExerciseToSection(exerciseId: string, newSection: string, index: number) {
+    const allExercises = [...dataStore.getExercises()];
+    const exerciseIdx = allExercises.findIndex(e => e.id === exerciseId);
+    if (exerciseIdx === -1) return;
+
+    const [exercise] = allExercises.splice(exerciseIdx, 1);
+    const updatedExercise = { ...exercise, section: newSection };
+
+    const targetSectionExercises = allExercises.filter(e =>
+        e.section === newSection && (e.group || 'General') === (updatedExercise.group || 'General')
+    );
+
+    let targetGlobalIndex: number;
+    if (targetSectionExercises.length > 0) {
+        if (index < targetSectionExercises.length) {
+            const targetRef = targetSectionExercises[index];
+            targetGlobalIndex = allExercises.findIndex(e => e.id === targetRef.id);
+        } else {
+            const lastInSection = targetSectionExercises[targetSectionExercises.length - 1];
+            targetGlobalIndex = allExercises.findIndex(e => e.id === lastInSection.id) + 1;
+        }
+    } else {
+        targetGlobalIndex = allExercises.length;
+    }
+
+    allExercises.splice(targetGlobalIndex, 0, updatedExercise);
+
+    dataStore.setExercises(allExercises);
+}
+
 export function useDragAndDrop({
-    setPlannedExercises,
-    exercises,
-    sections,
     isEditMode,
-    onMoveExerciseToSection,
-    onReorderSections,
-    onReorderExercises,
     setIsMenuVisible,
 }: UseDragAndDropProps) {
-
     const handleDragStart = useCallback((_result: DragStart) => {
+        if (isEditMode) return;
         setIsMenuVisible(false);
-    }, [setIsMenuVisible]);
+    }, [isEditMode, setIsMenuVisible]);
 
     const handleDragEnd = useCallback((result: DropResult) => {
+        // console.log(result);
         const { source, destination, draggableId } = result;
 
         if (!destination) {
@@ -45,17 +65,17 @@ export function useDragAndDrop({
 
         // Case 1: Reordering within planner
         if (source.droppableId === 'planner-droppable' && destination.droppableId === 'planner-droppable') {
-            setPlannedExercises((prev) => arrayMove(prev, source.index, destination.index));
+            dataStore.setPlannedExercises((prev) => arrayMove(prev, source.index, destination.index));
         }
         // Case 2: Dragging from menu to planner
         else if (source.droppableId.startsWith('droppable-section-') && destination.droppableId === 'planner-droppable') {
             const id = draggableId.replace('menu-', '');
-            const exercise = exercises.find(e => e.id === id);
+            const exercise = dataStore.getExercises().find(e => e.id === id);
 
             if (exercise) {
                 const newItem = createPlannedExercise(exercise);
 
-                setPlannedExercises((prev) => {
+                dataStore.setPlannedExercises((prev) => {
                     const next = [...prev];
                     next.splice(destination.index, 0, newItem);
                     return next;
@@ -68,37 +88,39 @@ export function useDragAndDrop({
         }
         // Case 3: Reordering sections in menu
         else if (source.droppableId === 'section-list' && destination.droppableId === 'section-list') {
-            const group = sections.find(s => `section-${s.group}-${s.name}` === draggableId)?.group;
+            const group = dataStore.getSections().find(s => `section-${s.group}-${s.name}` === draggableId)?.group;
             if (group) {
-                const groupSections = sections.filter(s => s.group === group);
+                const groupSections = dataStore.getSections().filter(s => s.group === group);
                 const newGroupSections = arrayMove(groupSections, source.index, destination.index);
-                onReorderSections(newGroupSections, group);
+
+                const otherSections = dataStore.getSections().filter(s => s.group !== group);
+                dataStore.setSections([...otherSections, ...newGroupSections]);
             }
         }
         // Case 4: Reordering exercises within a section
         else if (source.droppableId.startsWith('droppable-section-') && destination.droppableId === source.droppableId && isEditMode) {
             const id = draggableId.replace('menu-', '');
-            const exercise = exercises.find(e => e.id === id);
-            if (exercise && onReorderExercises) {
-                const sectionExercises = exercises.filter(e => `droppable-section-${e.group}-${e.section}` === source.droppableId);
+            const exercise = dataStore.getExercises().find(e => e.id === id);
+            if (exercise) {
+                const sectionExercises = dataStore.getExercises().filter(e => `droppable-section-${e.group}-${e.section}` === source.droppableId);
                 const movedExercise = sectionExercises[source.index];
                 const targetExercise = sectionExercises[destination.index];
 
-                const globalFromIndex = exercises.findIndex(e => e.id === movedExercise.id);
-                const globalToIndex = exercises.findIndex(e => e.id === targetExercise.id);
-
-                onReorderExercises(arrayMove(exercises, globalFromIndex, globalToIndex));
+                const globalFromIndex = dataStore.getExercises().findIndex(e => e.id === movedExercise.id);
+                const globalToIndex = dataStore.getExercises().findIndex(e => e.id === targetExercise.id);
+                console.log(globalFromIndex, globalToIndex);
+                dataStore.setExercises(prev => arrayMove(prev, globalFromIndex, globalToIndex));
             }
         }
         // Case 5: Moving exercise to a different section
         else if (source.droppableId.startsWith('droppable-section-') && destination.droppableId.startsWith('droppable-section-') && isEditMode) {
             const id = draggableId.replace('menu-', '');
-            const targetSection = sections.find(s => `droppable-section-${s.group}-${s.name}` === destination.droppableId);
+            const targetSection = dataStore.getSections().find(s => `droppable-section-${s.group}-${s.name}` === destination.droppableId);
             if (targetSection) {
-                onMoveExerciseToSection(id, targetSection.name);
+                onMoveExerciseToSection(id, targetSection.name, destination.index);
             }
         }
-    }, [exercises, isEditMode, onMoveExerciseToSection, onReorderExercises, onReorderSections, sections, setIsMenuVisible, setPlannedExercises]);
+    }, [isEditMode, setIsMenuVisible]);
 
     return {
         handleDragStart,

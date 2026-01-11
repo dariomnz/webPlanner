@@ -1,10 +1,7 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Heart } from './Icons';
 import BalletIcon from '../assets/ballerina.svg?react';
-
-interface HeartAnimationProps {
-    onComplete: () => void;
-}
 
 interface Particle {
     x: number;
@@ -15,7 +12,7 @@ interface Particle {
     duration: number;
 }
 
-export default function HeartAnimation({ onComplete }: HeartAnimationProps) {
+function AnimationOverlay({ onComplete }: { onComplete: () => void }) {
     useEffect(() => {
         // Auto-close after animation completes
         const timer = setTimeout(() => {
@@ -111,5 +108,28 @@ export default function HeartAnimation({ onComplete }: HeartAnimationProps) {
                 </div>
             </div>
         </div>
+    );
+}
+
+AnimationOverlay.displayName = 'AnimationOverlay';
+
+export default function HeartAnimation() {
+    const [isVisible, setIsVisible] = useState(false);
+
+    return (
+        <>
+            <button
+                onClick={() => setIsVisible(true)}
+                className="p-4 bg-pink-500 text-white rounded-full shadow-lg hover:bg-pink-600 transition-all scale-70 active:scale-60 animate-heart-pop"
+                aria-label="Mostrar corazón"
+            >
+                <Heart fill="currentColor" />
+            </button>
+
+            {isVisible && createPortal(
+                <AnimationOverlay onComplete={() => setIsVisible(false)} />,
+                document.body
+            )}
+        </>
     );
 }

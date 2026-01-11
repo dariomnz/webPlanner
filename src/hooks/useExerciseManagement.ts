@@ -1,129 +1,81 @@
 import { useCallback } from 'react';
-import { Exercise, PlannedExercise, Section } from '../types';
+import { Exercise, PlannedExercise } from '../types';
 import { createExercise, createPlannedExercise } from '../utils/exerciseHelpers';
+import { dataStore } from '../store/DataStore';
 
-interface UseExerciseManagementProps {
-    exercises: Exercise[];
-    setExercises: (exercises: Exercise[] | ((prev: Exercise[]) => Exercise[])) => void;
-    sections: Section[];
-    setSections: (sections: Section[] | ((prev: Section[]) => Section[])) => void;
-    groups: string[];
-    setGroups: (groups: string[] | ((prev: string[]) => string[])) => void;
-    plannedExercises: PlannedExercise[];
-    setPlannedExercises: (exercises: PlannedExercise[] | ((prev: PlannedExercise[]) => PlannedExercise[])) => void;
-    isEditMode: boolean;
-}
 
-export function useExerciseManagement({
-    setExercises,
-    setSections,
-    setGroups,
-    setPlannedExercises,
-    isEditMode,
-}: UseExerciseManagementProps) {
+
+export function useExerciseManagement(isEditMode: boolean) {
 
     const handleAddExercise = useCallback((name: string, section: string, group: string) => {
         const newExercise = createExercise(name, section, group);
-        setExercises(prev => [...prev, newExercise]);
-    }, [setExercises]);
+        dataStore.setExercises([...dataStore.getExercises(), newExercise]);
+    }, []);
 
     const handleAddSection = useCallback((sectionName: string, group: string) => {
-        setSections(prev => {
-            if (!prev.some(s => s.name === sectionName && s.group === group)) {
-                return [...prev, { name: sectionName, group }];
-            }
-            return prev;
-        });
-    }, [setSections]);
+        const sections = dataStore.getSections();
+        if (!sections.some(s => s.name === sectionName && s.group === group)) {
+            dataStore.setSections([...sections, { name: sectionName, group }]);
+        }
+    }, []);
 
     const handleAddGroup = useCallback((groupName: string) => {
-        setGroups(prev => {
-            if (!prev.includes(groupName)) {
-                return [...prev, groupName];
-            }
-            return prev;
-        });
-    }, [setGroups]);
+        const groups = dataStore.getGroups();
+        if (!groups.includes(groupName)) {
+            dataStore.setGroups([...groups, groupName]);
+        }
+    }, []);
 
     const handleRemoveExercise = useCallback((id: string) => {
-        setPlannedExercises(prev => prev.filter((ex) => ex.id !== id));
-    }, [setPlannedExercises]);
+        dataStore.setPlannedExercises(dataStore.getPlannedExercises().filter((ex) => ex.id !== id));
+    }, []);
 
     const handleDeleteExerciseFromMenu = useCallback((id: string) => {
-        setExercises(prev => prev.filter(ex => ex.id !== id));
-    }, [setExercises]);
+        dataStore.setExercises(dataStore.getExercises().filter(ex => ex.id !== id));
+    }, []);
 
     const handleDeleteSection = useCallback((sectionName: string, group: string) => {
-        setSections(prev => prev.filter(s => !(s.name === sectionName && s.group === group)));
-        setExercises(prev => prev.filter(ex => !(ex.section === sectionName && ex.group === group)));
-    }, [setSections, setExercises]);
+        dataStore.setSections(dataStore.getSections().filter(s => !(s.name === sectionName && s.group === group)));
+        dataStore.setExercises(dataStore.getExercises().filter(ex => !(ex.section === sectionName && ex.group === group)));
+    }, []);
 
     const handleDeleteGroup = useCallback((groupName: string) => {
-        // Eliminar ejercicios del grupo
-        setExercises(prev => prev.filter(ex => ex.group !== groupName));
-        // Eliminar secciones del grupo
-        setSections(prev => prev.filter(s => s.group !== groupName));
-        // Eliminar el grupo
-        setGroups(prev => prev.filter(g => g !== groupName));
-    }, [setExercises, setSections, setGroups]);
-
-    const handleMoveExerciseToSection = useCallback((exerciseId: string, newSection: string) => {
-        setExercises(prev => prev.map(ex =>
-            ex.id === exerciseId ? { ...ex, section: newSection } : ex
-        ));
-    }, [setExercises]);
+        dataStore.setExercises(dataStore.getExercises().filter(ex => ex.group !== groupName));
+        dataStore.setSections(dataStore.getSections().filter(s => s.group !== groupName));
+        dataStore.setGroups(dataStore.getGroups().filter(g => g !== groupName));
+    }, []);
 
     const handleRenameExercise = useCallback((exerciseId: string, newName: string) => {
-        setExercises(prev => prev.map(ex =>
-            ex.id === exerciseId ? { ...ex, name: newName } : ex
-        ));
-    }, [setExercises]);
+        dataStore.updateExercise(exerciseId, { name: newName });
+    }, []);
 
     const handleUpdateExercise = useCallback((exerciseId: string, updates: Partial<Exercise>) => {
-        setExercises(prev => prev.map(ex =>
-            ex.id === exerciseId ? { ...ex, ...updates } : ex
-        ));
-    }, [setExercises]);
+        dataStore.updateExercise(exerciseId, updates);
+    }, []);
 
     const handleRenameSection = useCallback((oldName: string, newName: string, group: string) => {
-        setSections(prev => prev.map(s =>
+        dataStore.setSections(dataStore.getSections().map(s =>
             (s.name === oldName && s.group === group) ? { ...s, name: newName } : s
         ));
-        setExercises(prev => prev.map(ex =>
+        dataStore.setExercises(dataStore.getExercises().map(ex =>
             ex.section === oldName ? { ...ex, section: newName } : ex
         ));
-    }, [setSections, setExercises]);
+    }, []);
 
     const handleAddToPlan = useCallback((exercise: Exercise) => {
         if (isEditMode) return;
 
         const newItem = createPlannedExercise(exercise);
-        setPlannedExercises(prev => [...prev, newItem]);
-    }, [isEditMode, setPlannedExercises]);
+        dataStore.setPlannedExercises([...dataStore.getPlannedExercises(), newItem]);
+    }, [isEditMode]);
 
     const handleClearAll = useCallback(() => {
-        setPlannedExercises([]);
-    }, [setPlannedExercises]);
+        dataStore.clearPlannedExercises();
+    }, []);
 
     const handleUpdatePlannedExercise = useCallback((id: string, updates: Partial<PlannedExercise>) => {
-        setPlannedExercises(prev => prev.map(ex =>
-            ex.id === id ? { ...ex, ...updates } : ex
-        ));
-    }, [setPlannedExercises]);
-
-    const handleReorderSections = useCallback((reorderedGroupSections: Section[], group: string) => {
-        setSections(prev => {
-            const otherSections = prev.filter(s => s.group !== group);
-            // We append the reordered sections. 
-            // Note: This changes the global order of sections (group blocks might move), 
-            // but since we only view one group at a time, it shouldn't matter visually.
-            return [...otherSections, ...reorderedGroupSections];
-        });
-    }, [setSections]);
-
-    const handleReorderExercises = useCallback((reorderedExercises: Exercise[]) => {
-        setExercises(reorderedExercises);
-    }, [setExercises]);
+        dataStore.updateExercise(id, updates);
+    }, []);
 
     return {
         handleAddExercise,
@@ -133,14 +85,12 @@ export function useExerciseManagement({
         handleDeleteExerciseFromMenu,
         handleDeleteSection,
         handleDeleteGroup,
-        handleMoveExerciseToSection,
         handleRenameExercise,
         handleUpdateExercise,
         handleRenameSection,
         handleAddToPlan,
         handleClearAll,
         handleUpdatePlannedExercise,
-        handleReorderSections,
-        handleReorderExercises,
     };
 }
+

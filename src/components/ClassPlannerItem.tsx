@@ -1,18 +1,19 @@
 import { useState, useCallback, useRef, FocusEvent } from 'react';
 import { Trash2, ChevronDown, ChevronRight } from './Icons';
-import { PlannedExercise } from '../types';
 import { Draggable } from '@hello-pangea/dnd';
 import { AutoResizeTextarea } from './Common/AutoResizeTextarea';
+import { useStoreItem } from '../hooks/useDataStore';
+import { dataStore } from '../store/DataStore';
 
 interface SortablePlannerItemProps {
-    exercise: PlannedExercise;
+    isEditMode: boolean;
+    exerciseId: string;
     index: number;
-    onRemove: (id: string) => void;
-    onUpdateExercise: (id: string, updates: Partial<PlannedExercise>) => void;
 }
 
-export default function ClassPlannerItem({ exercise, index, onRemove, onUpdateExercise }: SortablePlannerItemProps) {
-    const { id, name, section, description } = exercise;
+export default function ClassPlannerItem({ isEditMode, exerciseId, index }: SortablePlannerItemProps) {
+    const exercise = useStoreItem(exerciseId, () => dataStore.getExercise(exerciseId));
+
     const [isEditing, setIsEditing] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -25,19 +26,26 @@ export default function ClassPlannerItem({ exercise, index, onRemove, onUpdateEx
     }, []);
 
     const handleNameChange = useCallback((newName: string) => {
-        onUpdateExercise(id, { name: newName });
-    }, [id, onUpdateExercise]);
+        dataStore.updateExercise(exerciseId, { name: newName });
+    }, [exerciseId]);
 
     const handleSectionChange = useCallback((newSection: string) => {
-        onUpdateExercise(id, { section: newSection });
-    }, [id, onUpdateExercise]);
+        dataStore.updateExercise(exerciseId, { section: newSection });
+    }, [exerciseId]);
 
     const handleDescriptionChange = useCallback((newDescription: string) => {
-        onUpdateExercise(id, { description: newDescription });
-    }, [id, onUpdateExercise]);
+        dataStore.updateExercise(exerciseId, { description: newDescription });
+    }, [exerciseId]);
+
+    const handleRemove = useCallback(() => {
+        dataStore.removePlannedExercise(exerciseId);
+    }, [exerciseId]);
+
+    if (!exercise) return null;
+    const { id, name, section, description } = exercise;
 
     return (
-        <Draggable draggableId={id} index={index} isDragDisabled={isEditing}>
+        <Draggable draggableId={id} index={index} isDragDisabled={isEditing || isEditMode}>
             {(provided, snapshot) => (
                 <div
                     ref={provided.innerRef}
@@ -50,7 +58,7 @@ export default function ClassPlannerItem({ exercise, index, onRemove, onUpdateEx
                     onDoubleClick={() => { if (!isEditing) setIsEditing(true) }}
                 >
                     <div className="flex items-center gap-2" >
-                        {!isEditing && exercise.description && (
+                        {!isEditing && description && (
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
@@ -118,7 +126,7 @@ export default function ClassPlannerItem({ exercise, index, onRemove, onUpdateEx
                         </div>
 
                         {!isEditing && <button
-                            onClick={() => onRemove(id)}
+                            onClick={handleRemove}
                             className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
                             title="Eliminar de la clase"
                         >

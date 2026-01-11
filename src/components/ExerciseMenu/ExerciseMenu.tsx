@@ -1,56 +1,81 @@
 import { useState, useMemo, useCallback } from 'react';
 import { Calendar, Pencil, Download, Upload } from '../Icons';
-import { Exercise, Section as SectionType } from '../../types';
-import { Section } from './Section';
-import { GroupSelector } from './GroupSelector';
-import { SectionManager } from './SectionManager';
+import MenuSection from './MenuSection';
+import GroupSelector from './GroupSelector';
+import SectionManager from './SectionManager';
 import { Droppable } from '@hello-pangea/dnd';
+import { useStoreItem } from '../../hooks/useDataStore';
+import { dataStore } from '../../store/DataStore';
+import { Exercise, PlannedExercise, Section } from '../../types';
+import { exportDataToJson, importDataFromJson } from '../../utils/exportUtils';
+import ConfirmationModal from '../ConfirmationModal';
 
 interface ExerciseMenuProps {
-    exercises: Exercise[];
-    sections: SectionType[];
-    groups: string[];
-    onAddGroup: (group: string) => void;
-    onAddExercise: (name: string, section: string, group: string) => void;
-    onAddSection: (sectionName: string, group: string) => void;
-    onAddToPlan: (exercise: Exercise) => void;
-    onDeleteExercise: (id: string) => void;
-    onDeleteSection: (sectionName: string, group: string) => void;
-    onDeleteGroup: (group: string) => void;
-    onMoveExerciseToSection: (exerciseId: string, newSection: string) => void;
-    onRenameExercise: (exerciseId: string, newName: string) => void;
-    onUpdateExercise: (exerciseId: string, updates: Partial<Exercise>) => void;
-    onRenameSection: (oldName: string, newName: string, group: string) => void;
     isEditMode: boolean;
     onEditModeChange: (isEditMode: boolean) => void;
     isVisible: boolean;
-    onExportExercises: () => void;
-    onImportExercises: (file: File) => void;
 }
 
 const DEFAULT_GROUP = 'General';
-
-const ExerciseMenu = function ExerciseMenu({
-    exercises,
-    sections,
-    groups,
-    onAddGroup,
-    onAddExercise,
-    onAddSection,
-    onAddToPlan,
-    onDeleteExercise,
-    onDeleteSection,
-    onDeleteGroup,
-    onRenameExercise,
-    onUpdateExercise,
-    onRenameSection,
+export default function ExerciseMenu({
     isEditMode,
     onEditModeChange,
     isVisible,
-    onExportExercises,
-    onImportExercises
 }: ExerciseMenuProps) {
     const [selectedGroup, setSelectedGroup] = useState<string>(DEFAULT_GROUP);
+    const groups = useStoreItem('groups', () => dataStore.getGroups());
+    const sections = useStoreItem('sections', () => dataStore.getSections());
+    const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
+    const [pendingImportData, setPendingImportData] = useState<{ exercises?: Exercise[], sections?: Section[], groups?: string[], plannedExercises?: PlannedExercise[], classTitle?: string } | null>(null);
+
+    const confirmImport = useCallback(() => {
+        if (pendingImportData) {
+            dataStore.importData(pendingImportData);
+            setPendingImportData(null);
+            setIsImportModalOpen(false);
+        }
+    }, [pendingImportData, setPendingImportData, setIsImportModalOpen]);
+    const handleCloseImportModal = useCallback(() => {
+        setIsImportModalOpen(false);
+        setPendingImportData(null);
+    }, [setIsImportModalOpen, setPendingImportData]);
+
+    const handleExportExercises = useCallback(() => {
+        const exercises = dataStore.getExercises();
+        const sections = dataStore.getSections();
+        const groups = dataStore.getGroups();
+        const data = {
+            exercises,
+            sections,
+            groups
+        };
+        exportDataToJson(data, 'exercises_backup');
+    }, []);
+
+    const handleImportExercises = useCallback(async (file: File) => {
+        try {
+            const data = await importDataFromJson(file);
+            if (data.exercises && Array.isArray(data.exercises) && data.sections && Array.isArray(data.sections)) {
+                // Migración para archivos antiguos que no tienen grupos
+                const importedSections = data.sections.map((s: string | Section) =>
+                    typeof s === 'string' ? { name: s, group: 'General' } : s
+                );
+                const importedGroups = data.groups || ['General'];
+
+                setPendingImportData({
+                    exercises: data.exercises,
+                    sections: importedSections,
+                    groups: importedGroups
+                });
+                setIsImportModalOpen(true);
+            } else {
+                alert('El archivo no tiene el formato correcto.');
+            }
+        } catch (error) {
+            console.error('Error importing exercises:', error);
+            alert('Error al leer el archivo.');
+        }
+    }, [setPendingImportData, setIsImportModalOpen]);
 
     // Asegurarse de que el grupo seleccionado existe (sincronización durante el renderizado)
     let groupToUse = selectedGroup;
@@ -64,15 +89,6 @@ const ExerciseMenu = function ExerciseMenu({
         setSelectedGroup(groupToUse);
     }
 
-    // Filtrar ejercicios y secciones por grupo seleccionado
-    const filteredExercises = useMemo(() => {
-        if (!selectedGroup) return [];
-        return exercises.filter(ex => {
-            const exerciseGroup = ex.group || DEFAULT_GROUP;
-            return exerciseGroup === selectedGroup;
-        });
-    }, [exercises, selectedGroup]);
-
     const filteredSections = useMemo(() => {
         return sections.filter(s => s.group === selectedGroup);
     }, [sections, selectedGroup]);
@@ -80,121 +96,113 @@ const ExerciseMenu = function ExerciseMenu({
     const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
-            onImportExercises(file);
+            handleImportExercises(file);
         }
         // Reset input value to allow selecting the same file again
         event.target.value = '';
-    }, [onImportExercises]);
-
-    const handleAddGroup = useCallback((groupName: string) => {
-        onAddGroup(groupName);
-        setSelectedGroup(groupName);
-    }, [onAddGroup]);
+    }, [handleImportExercises]);
 
     return (
-        <div className={`
+        <>
+            <div className={`
             w-80 bg-white border-r border-pink-200 h-full flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-10
-            md:relative md:translate-x-0
-            fixed transition-transform duration-300 ease-in-out
-            ${isVisible ? 'translate-x-0' : '-translate-x-full'}
+            md:relative md:left-0
+            fixed transition-all duration-300 ease-in-out
+            ${isVisible ? 'left-0' : '-left-80'}
         `}>
-            <div className="p-4 border-b border-pink-100 bg-pink-50/30">
-                <div className="flex justify-between items-center mb-3">
-                    <h2 className="text-xl font-serif text-pink-950 font-semibold">Ejercicios</h2>
-                    <div className="flex items-center gap-1">
-                        {isEditMode && (
-                            <div className="flex items-center gap-1 bg-white border border-pink-100 p-1 rounded-lg shadow-sm mr-2">
+                <div className="p-4 border-b border-pink-100 bg-pink-50/30">
+                    <div className="flex justify-between items-center mb-3">
+                        <h2 className="text-xl font-serif text-pink-950 font-semibold">Ejercicios</h2>
+                        <div className="flex items-center gap-1">
+                            {isEditMode && (
+                                <div className="flex items-center gap-1 bg-white border border-pink-100 p-1 rounded-lg shadow-sm mr-2">
+                                    <button
+                                        onClick={handleExportExercises}
+                                        className="p-1.5 rounded-md text-pink-400 hover:text-pink-600 hover:bg-pink-50 transition-all"
+                                        title="Guardar ejercicios (Backup)"
+                                    >
+                                        <Download size={16} />
+                                    </button>
+                                    <label className="p-1.5 rounded-md text-pink-400 hover:text-pink-600 hover:bg-pink-50 transition-all cursor-pointer" title="Cargar ejercicios">
+                                        <Upload size={16} />
+                                        <input
+                                            type="file"
+                                            accept=".json"
+                                            onChange={handleFileChange}
+                                            className="hidden"
+                                        />
+                                    </label>
+                                </div>
+                            )}
+                            <div className="flex items-center gap-1 bg-white border border-pink-100 p-1 rounded-lg shadow-sm">
                                 <button
-                                    onClick={onExportExercises}
-                                    className="p-1.5 rounded-md text-pink-400 hover:text-pink-600 hover:bg-pink-50 transition-all"
-                                    title="Guardar ejercicios (Backup)"
+                                    onClick={() => onEditModeChange(false)}
+                                    className={`p-1.5 rounded-md transition-all ${!isEditMode ? 'bg-pink-100 text-pink-700 shadow-sm' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
+                                    title="Modo Planificación"
                                 >
-                                    <Download size={16} />
+                                    <Calendar size={16} />
                                 </button>
-                                <label className="p-1.5 rounded-md text-pink-400 hover:text-pink-600 hover:bg-pink-50 transition-all cursor-pointer" title="Cargar ejercicios">
-                                    <Upload size={16} />
-                                    <input
-                                        type="file"
-                                        accept=".json"
-                                        onChange={handleFileChange}
-                                        className="hidden"
-                                    />
-                                </label>
+                                <button
+                                    onClick={() => onEditModeChange(true)}
+                                    className={`p-1.5 rounded-md transition-all ${isEditMode ? 'bg-pink-100 text-pink-700 shadow-sm' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
+                                    title="Modo Edición"
+                                >
+                                    <Pencil size={16} />
+                                </button>
                             </div>
-                        )}
-                        <div className="flex items-center gap-1 bg-white border border-pink-100 p-1 rounded-lg shadow-sm">
-                            <button
-                                onClick={() => onEditModeChange(false)}
-                                className={`p-1.5 rounded-md transition-all ${!isEditMode ? 'bg-pink-100 text-pink-700 shadow-sm' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
-                                title="Modo Planificación"
-                            >
-                                <Calendar size={16} />
-                            </button>
-                            <button
-                                onClick={() => onEditModeChange(true)}
-                                className={`p-1.5 rounded-md transition-all ${isEditMode ? 'bg-pink-100 text-pink-700 shadow-sm' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
-                                title="Modo Edición"
-                            >
-                                <Pencil size={16} />
-                            </button>
                         </div>
                     </div>
+
+                    {/* Selector de grupos */}
+                    <GroupSelector
+                        groups={groups}
+                        selectedGroup={selectedGroup}
+                        onSelectGroup={setSelectedGroup}
+                        isEditMode={isEditMode}
+                    />
+
+                    {/* Gestor de secciones */}
+                    <SectionManager
+                        selectedGroup={selectedGroup}
+                        isEditMode={isEditMode}
+                    />
                 </div>
 
-                {/* Selector de grupos */}
-                <GroupSelector
-                    groups={groups}
-                    selectedGroup={selectedGroup}
-                    onSelectGroup={setSelectedGroup}
-                    onAddGroup={handleAddGroup}
-                    onDeleteGroup={onDeleteGroup}
-                    isEditMode={isEditMode}
-                />
+                <Droppable droppableId="section-list" type="SECTION" isDropDisabled={!isEditMode}>
+                    {(provided) => (
+                        <div
+                            ref={provided.innerRef}
+                            {...provided.droppableProps}
+                            className="flex-1 overflow-y-auto p-4"
+                        >
+                            {filteredSections.map((section, index) => (
+                                <MenuSection
+                                    key={`section-${section.group}-${section.name}`}
+                                    index={index}
+                                    currentGroup={selectedGroup}
+                                    title={section.name}
+                                    isEditMode={isEditMode}
+                                />
+                            ))}
+                            {provided.placeholder}
 
-                {/* Gestor de secciones */}
-                <SectionManager
-                    selectedGroup={selectedGroup}
-                    onAddSection={onAddSection}
-                    isEditMode={isEditMode}
-                />
+                            {filteredSections.length === 0 && (
+                                <div className="text-xs text-gray-400 italic py-1">No hay secciones</div>
+                            )}
+
+                            <div className="md:hidden h-18"></div>
+                        </div>
+                    )}
+                </Droppable>
             </div>
 
-            <Droppable droppableId="section-list" type="SECTION" isDropDisabled={!isEditMode}>
-                {(provided) => (
-                    <div
-                        ref={provided.innerRef}
-                        {...provided.droppableProps}
-                        className="flex-1 overflow-y-auto p-4"
-                    >
-                        {filteredSections.map((section, index) => (
-                            <Section
-                                key={`section-${section.group}-${section.name}`}
-                                index={index}
-                                title={section.name}
-                                exercises={filteredExercises.filter(e => e.section === section.name)}
-                                onAddExercise={onAddExercise}
-                                onAddToPlan={onAddToPlan}
-                                onDeleteExercise={onDeleteExercise}
-                                onDeleteSection={(sectionName) => onDeleteSection(sectionName, section.group)}
-                                onRenameSection={(oldName, newName) => onRenameSection(oldName, newName, section.group)}
-                                onRenameExercise={onRenameExercise}
-                                onUpdateExercise={onUpdateExercise}
-                                isEditMode={isEditMode}
-                                currentGroup={selectedGroup}
-                            />
-                        ))}
-                        {provided.placeholder}
-
-                        {filteredSections.length === 0 && (
-                            <div className="text-xs text-gray-400 italic py-1">No hay secciones</div>
-                        )}
-
-                        <div className="md:hidden h-18"></div>
-                    </div>
-                )}
-            </Droppable>
-        </div>
+            <ConfirmationModal
+                isOpen={isImportModalOpen}
+                onClose={handleCloseImportModal}
+                onConfirm={confirmImport}
+                title="¿Importar ejercicios?"
+                message="¿Estás seguro de que quieres importar estos ejercicios? Se reemplazarán todos los ejercicios y secciones actuales por los del archivo."
+            />
+        </>
     );
 };
-
-export default ExerciseMenu;

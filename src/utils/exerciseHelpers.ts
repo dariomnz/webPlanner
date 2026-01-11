@@ -5,7 +5,7 @@ import { Exercise, PlannedExercise } from '../types';
  */
 export function createExercise(name: string, section: string, group: string, description?: string): Exercise {
     return {
-        id: Date.now().toString(),
+        id: `exercise-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
         name,
         section,
         group,

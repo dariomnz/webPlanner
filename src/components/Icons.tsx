@@ -17,7 +17,9 @@ import {
     Check as LucideCheck,
     Menu as LucideMenu,
 } from 'lucide-react';
+import SVGBalletIcon from '../assets/ballerina.svg?react';
 
+export const BalletIcon = memo(SVGBalletIcon);
 export const X = memo(LucideX);
 export const AlertTriangle = memo(LucideAlertTriangle);
 export const Heart = memo(LucideHeart);

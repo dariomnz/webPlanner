@@ -1,37 +1,31 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Edit2, Check } from './Icons';
+import { useStoreItem } from '../hooks/useDataStore';
+import { dataStore } from '../store/DataStore';
 
-interface ClassTitleProps {
-    title: string;
-    onTitleChange: (title: string) => void;
-}
-
-export default function ClassTitle({ title, onTitleChange }: ClassTitleProps) {
+export default function ClassTitle() {
+    const title = useStoreItem('class-title', () => dataStore.getClassTitle());
     const [isEditing, setIsEditing] = useState(false);
-    const [tempTitle, setTempTitle] = useState(title);
 
-    const handleStartEdit = () => {
-        setTempTitle(title);
+    const handleTitleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        dataStore.setClassTitle(e.target.value);
+    }, []);
+
+    const handleStartEdit = useCallback(() => {
         setIsEditing(true);
-    };
-
-    const handleSave = () => {
-        onTitleChange(tempTitle.trim());
+    }, [setIsEditing]);
+    const handleEndEdit = useCallback(() => {
+        dataStore.setClassTitle(prev => prev.trim());
         setIsEditing(false);
-    };
+    }, [setIsEditing]);
 
-    const handleCancel = () => {
-        setTempTitle(title);
-        setIsEditing(false);
-    };
-
-    const handleKeyDown = (e: React.KeyboardEvent) => {
+    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
         if (e.key === 'Enter') {
-            handleSave();
+            handleEndEdit();
         } else if (e.key === 'Escape') {
-            handleCancel();
+            handleEndEdit();
         }
-    };
+    }, [handleEndEdit]);
 
     return (
         <div className="mb-6 pb-4 border-b border-pink-100">
@@ -39,17 +33,16 @@ export default function ClassTitle({ title, onTitleChange }: ClassTitleProps) {
                 <div className="flex items-center gap-2">
                     <input
                         type="text"
-                        value={tempTitle}
-                        onChange={(e) => setTempTitle(e.target.value)}
+                        value={title}
+                        onChange={handleTitleChange}
                         onKeyDown={handleKeyDown}
-                        onBlur={handleSave}
                         placeholder="Nombre de la clase (opcional)"
                         className="w-full px-4 py-2 text-xl font-serif font-medium text-pink-950 bg-white border-2 border-pink-300 rounded-lg focus:outline-none focus:border-pink-500 transition-colors"
                         onFocus={(e) => e.target.setSelectionRange(e.target.value.length, e.target.value.length)}
                         autoFocus
                     />
                     <button
-                        onClick={handleSave}
+                        onClick={handleEndEdit}
                         className="p-2 text-green-600 hover:bg-green-50 rounded-full transition-colors flex-shrink-0"
                         title="Guardar título"
                     >
@@ -60,7 +53,7 @@ export default function ClassTitle({ title, onTitleChange }: ClassTitleProps) {
                 <div className="flex items-center justify-between group">
                     {title ? (
                         <h2
-                            className="text-2xl text-center font-serif font-bold text-pink-950 cursor-pointer hover:text-pink-700 transition-colors flex-grow"
+                            className="text-2xl text-center font-serif font-bold text-pink-700 cursor-pointer hover:text-pink-400 transition-colors flex-grow"
                             onClick={handleStartEdit}
                             title="Click para editar"
                         >
