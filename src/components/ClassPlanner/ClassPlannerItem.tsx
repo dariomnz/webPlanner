@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, FocusEvent, useEffect, useEffectEvent, MouseEvent } from 'react';
+import { useState, useCallback, useRef, FocusEvent, MouseEvent } from 'react';
 import { Trash2, ChevronDown, ChevronRight } from '../Common/Icons';
 import { Draggable } from '@hello-pangea/dnd';
 import { AutoResizeTextarea } from '../Common/AutoResizeTextarea';
@@ -20,11 +20,6 @@ export default function ClassPlannerItem({ isEditMode, exerciseId, index }: Sort
     const containerRef = useRef<HTMLDivElement>(null);
 
     const [isNew, setIsNew] = useState(true);
-    const setIsNewEvent = useEffectEvent(setIsNew);
-    useEffect(() => {
-        const timer = setTimeout(() => setIsNewEvent(false), 500);
-        return () => clearTimeout(timer);
-    }, []);
 
     const handleDoubleClick = useCallback((e: MouseEvent<HTMLDivElement>) => {
         e.stopPropagation();
@@ -56,10 +51,15 @@ export default function ClassPlannerItem({ isEditMode, exerciseId, index }: Sort
     }, []);
 
     const onAnimationEnd = useCallback(() => {
+        if (isNew) {
+            setIsNew(false);
+            return;
+        }
         if (isDeleting) {
             dataStore.removePlannedExercise(exerciseId);
+            return;
         }
-    }, [isDeleting, exerciseId]);
+    }, [isDeleting, exerciseId, isNew, setIsNew]);
 
     if (!exercise) return null;
     const { id, name, section, description } = exercise;

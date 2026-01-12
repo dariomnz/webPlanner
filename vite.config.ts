@@ -21,4 +21,15 @@ export default defineConfig({
         host: true, // Expone el servidor a la red local
         port: 5173, // Puerto por defecto de Vite
     },
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks(id) {
+                    if (id.includes('node_modules')) {
+                        return 'vendor';
+                    }
+                },
+            },
+        },
+    },
 })

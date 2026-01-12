@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect, useEffectEvent } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { ChevronDown, ChevronRight, Trash2 } from '../Common/Icons';
 import { Draggable } from '@hello-pangea/dnd';
 import { AutoResizeTextarea } from '../Common/AutoResizeTextarea';
@@ -32,11 +32,6 @@ export default function MenuExerciseItem({
     }, [setExerciseToDelete]);
 
     const [isNew, setIsNew] = useState(true);
-    const setIsNewEvent = useEffectEvent(setIsNew);
-    useEffect(() => {
-        const timer = setTimeout(() => setIsNewEvent(false), 500);
-        return () => clearTimeout(timer);
-    }, []);
 
     const confirmDeleteExercise = useCallback(() => {
         if (exerciseToDelete) {
@@ -46,13 +41,18 @@ export default function MenuExerciseItem({
     }, [exerciseToDelete]);
 
     const onAnimationEnd = useCallback(() => {
+        if (isNew) {
+            setIsNew(false);
+            return;
+        }
         if (isDeletingRef.current && exerciseToDelete) {
             dataStore.removeExercise(exerciseToDelete);
             setExerciseToDelete(null);
             setIsDeleting(false);
             isDeletingRef.current = false;
+            return;
         }
-    }, [exerciseToDelete, setExerciseToDelete]);
+    }, [exerciseToDelete, setExerciseToDelete, setIsDeleting, isDeletingRef, isNew, setIsNew]);
 
     const formRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);

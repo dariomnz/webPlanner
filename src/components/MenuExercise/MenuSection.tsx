@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect, useEffectEvent, useRef } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import { Plus, ChevronDown, ChevronRight, Trash2 } from '../Common/Icons';
 import { Section } from '../../types/exercise';
 import MenuExerciseItem from './MenuExerciseItem';
@@ -39,11 +39,6 @@ export default function MenuSection({
     const isDeletingRef = useRef(false);
 
     const [isNew, setIsNew] = useState(true);
-    const setIsNewEvent = useEffectEvent(setIsNew);
-    useEffect(() => {
-        const timer = setTimeout(() => setIsNewEvent(false), 500);
-        return () => clearTimeout(timer);
-    }, []);
 
     const handleDeleteSection = useCallback((section: Section) => {
         setSectionToDelete(section);
@@ -55,13 +50,18 @@ export default function MenuSection({
     }, []);
 
     const onAnimationEnd = useCallback(() => {
+        if (isNew) {
+            setIsNew(false);
+            return;
+        }
         if (isDeletingRef.current && sectionToDelete) {
             dataStore.removeSection(sectionToDelete.name, sectionToDelete.group);
             setSectionToDelete(null);
             setIsDeleting(false);
             isDeletingRef.current = false;
+            return;
         }
-    }, [sectionToDelete, setSectionToDelete]);
+    }, [sectionToDelete, setSectionToDelete, setIsDeleting, isNew, setIsNew, isDeletingRef]);
 
     const handleCloseDeleteSectionModal = useCallback(() => {
         if (!isDeletingRef.current) {
