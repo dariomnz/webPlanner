@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect, useEffectEvent, useRef } from 'react';
 import { Plus, ChevronDown, ChevronRight, Trash2 } from '../Common/Icons';
 import { Section } from '../../types/exercise';
 import MenuExerciseItem from './MenuExerciseItem';
@@ -35,18 +35,39 @@ export default function MenuSection({
     const [newSectionName, setNewSectionName] = useState(title);
 
     const [sectionToDelete, setSectionToDelete] = useState<Section | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const isDeletingRef = useRef(false);
+
+    const [isNew, setIsNew] = useState(true);
+    const setIsNewEvent = useEffectEvent(setIsNew);
+    useEffect(() => {
+        const timer = setTimeout(() => setIsNewEvent(false), 500);
+        return () => clearTimeout(timer);
+    }, []);
 
     const handleDeleteSection = useCallback((section: Section) => {
         setSectionToDelete(section);
     }, [setSectionToDelete]);
 
     const confirmDeleteSection = useCallback(() => {
-        if (sectionToDelete) {
+        isDeletingRef.current = true;
+        setIsDeleting(true);
+    }, []);
+
+    const onAnimationEnd = useCallback(() => {
+        if (isDeletingRef.current && sectionToDelete) {
             dataStore.removeSection(sectionToDelete.name, sectionToDelete.group);
             setSectionToDelete(null);
+            setIsDeleting(false);
+            isDeletingRef.current = false;
         }
     }, [sectionToDelete, setSectionToDelete]);
-    const handleCloseDeleteSectionModal = useCallback(() => setSectionToDelete(null), [setSectionToDelete]);
+
+    const handleCloseDeleteSectionModal = useCallback(() => {
+        if (!isDeletingRef.current) {
+            setSectionToDelete(null);
+        }
+    }, [setSectionToDelete]);
 
 
     const sectionId = `section-${currentGroup}-${title}`;
@@ -83,7 +104,8 @@ export default function MenuSection({
                     <div
                         ref={provided.innerRef}
                         {...provided.draggableProps}
-                        className={`mb-4 ${snapshot.isDragging ? 'z-50' : ''}`}
+                        onAnimationEnd={onAnimationEnd}
+                        className={`mb-4 ${snapshot.isDragging ? 'z-50' : ''} ${isNew ? 'animate-zoom-in' : ''} ${isDeleting ? 'animate-zoom-out' : ''}`}
                     >
                         <div
                             {...provided.dragHandleProps}

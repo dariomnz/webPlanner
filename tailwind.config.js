@@ -50,6 +50,14 @@ export default {
                     '0%, 100%': { transform: 'scaleX(1)' },
                     '50%': { transform: 'scaleX(-1)' },
                 },
+                'zoom-in': {
+                    '0%': { transform: 'scale(0.8)', opacity: '0' },
+                    '100%': { transform: 'scale(1)', opacity: '1' },
+                },
+                'zoom-out': {
+                    '0%': { transform: 'scale(1)', opacity: '1' },
+                    '100%': { transform: 'scale(0.8)', opacity: '0' },
+                },
             },
             animation: {
                 'heart-pop': 'heart-pop 0.5s ease-out',
@@ -57,6 +65,8 @@ export default {
                 'heart-particle': 'heart-particle 1.5s ease-out forwards',
                 'fade-in-out': 'fade-in-out 2s ease-in-out',
                 'ballerina-spin': 'ballerina-spin 0.75s ease-in-out infinite',
+                'zoom-in': 'zoom-in 0.2s ease-in-out forwards',
+                'zoom-out': 'zoom-out 0.1s ease-in-out forwards',
             },
         },
     },

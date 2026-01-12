@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect, useEffectEvent } from 'react';
 import { ChevronDown, ChevronRight, Trash2 } from '../Common/Icons';
 import { Draggable } from '@hello-pangea/dnd';
 import { AutoResizeTextarea } from '../Common/AutoResizeTextarea';
@@ -23,11 +23,34 @@ export default function MenuExerciseItem({
     const [isEditing, setIsEditing] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
     const [exerciseToDelete, setExerciseToDelete] = useState<string | null>(null);
-    const handleCloseDeleteExerciseModal = useCallback(() => setExerciseToDelete(null), [setExerciseToDelete]);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const isDeletingRef = useRef(false);
+    const handleCloseDeleteExerciseModal = useCallback(() => {
+        if (!isDeletingRef.current) {
+            setExerciseToDelete(null);
+        }
+    }, [setExerciseToDelete]);
+
+    const [isNew, setIsNew] = useState(true);
+    const setIsNewEvent = useEffectEvent(setIsNew);
+    useEffect(() => {
+        const timer = setTimeout(() => setIsNewEvent(false), 500);
+        return () => clearTimeout(timer);
+    }, []);
+
     const confirmDeleteExercise = useCallback(() => {
         if (exerciseToDelete) {
+            isDeletingRef.current = true;
+            setIsDeleting(true);
+        }
+    }, [exerciseToDelete]);
+
+    const onAnimationEnd = useCallback(() => {
+        if (isDeletingRef.current && exerciseToDelete) {
             dataStore.removeExercise(exerciseToDelete);
             setExerciseToDelete(null);
+            setIsDeleting(false);
+            isDeletingRef.current = false;
         }
     }, [exerciseToDelete, setExerciseToDelete]);
 
@@ -83,14 +106,17 @@ export default function MenuExerciseItem({
                         onClick={() => !isEditMode && handleAdd()}
                         onDoubleClick={handleDoubleClick}
                         className={`
-                        flex flex-col p-2 mb-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm border text-sm group transition-colors transition-shadow duration-200
-                        ${snapshot.isDragging ? 'shadow-xl ring-2 ring-primary-500 z-[100]' : 'border-primary-100 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-700'}
-                        ${isEditMode && !snapshot.isDragging ? 'border-primary-200 dark:border-primary-900/50' : ''}
-                    `}
+                            flex flex-col p-2 mb-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm text-sm group transition-colors transition-shadow duration-200
+                            ${isNew ? 'animate-zoom-in ' : ' '}
+                            ${isDeleting ? 'animate-zoom-out ' : ' '}
+                            ${snapshot.isDragging ? 'shadow-xl ring-2 ring-primary-500 z-[100] ' : 'border border-primary-100 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-700 '}
+                            ${isEditMode && !snapshot.isDragging ? 'border-primary-200 dark:border-primary-900/50 ' : ' '}
+                        `}
+                        onAnimationEnd={onAnimationEnd}
                     >
                         <div className="flex items-center w-full">
                             {isEditing ? (
-                                <div ref={formRef} className="flex-1 flex flex-col space-y-3 mt-1">
+                                <div ref={formRef} className="flex-1 flex flex-col space-y-1">
                                     <div>
                                         <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Nombre del ejercicio</label>
                                         <AutoResizeTextarea
@@ -113,6 +139,7 @@ export default function MenuExerciseItem({
                                             onBlur={handleBlur}
                                             className="w-full px-3 py-2 text-xs bg-primary-50/50 dark:bg-gray-950/50 border border-primary-100 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-900/50 text-gray-600 dark:text-gray-400"
                                             placeholder="Añade una descripción..."
+                                            rows={1}
                                         />
                                     </div>
                                     <button
