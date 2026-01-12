@@ -148,6 +148,7 @@ class DataStore {
 
     getExercises() { return this.exercises; }
     getPlannedExercises() { return this.plannedExercises; }
+    getPlannedExercisesLength() { return this.plannedExercises.length; }
     getSections() { return this.sections; }
     getGroups() { return this.groups; }
     getClassTitle() { return this.classTitle; }

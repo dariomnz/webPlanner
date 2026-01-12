@@ -12,7 +12,7 @@ interface ClassPlannerProps {
 }
 
 export default function ClassPlanner({ isEditMode }: ClassPlannerProps) {
-    const plannedExercises = useStoreItem('planned-exercises', () => dataStore.getPlannedExercises());
+    const plannedExercisesLength = useStoreItem('planned-exercises', () => dataStore.getPlannedExercisesLength());
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isLeftBallerinaSpinning, setIsLeftBallerinaSpinning] = useState(false);
@@ -128,7 +128,7 @@ export default function ClassPlanner({ isEditMode }: ClassPlannerProps) {
                     />
 
                     <div className="mt-8 flex justify-center gap-4 flex-wrap">
-                        {plannedExercises.length === 0 ? (
+                        {plannedExercisesLength === 0 ? (
                             <button
                                 onClick={handleImportClick}
                                 className="flex items-center gap-2 px-6 py-3 text-primary-700 dark:text-primary-300 bg-white dark:bg-gray-800 border border-primary-200 dark:border-gray-700 hover:bg-primary-50 dark:hover:bg-gray-700 hover:border-primary-300 dark:hover:border-gray-600 rounded-full shadow-sm transition-all duration-200"
