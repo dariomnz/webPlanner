@@ -87,7 +87,7 @@ export default function MenuSection({
                     >
                         <div
                             {...provided.dragHandleProps}
-                            className={`flex items-center justify-between p-1 cursor-pointer group rounded-lg bg-primary-50/50 dark:bg-primary-900/10 hover:bg-primary-100 dark:hover:bg-primary-900/20 ${snapshot.isDragging ? 'bg-primary-100 dark:bg-primary-900/30' : 'transition-colors'}`}
+                            className={`flex items-center justify-between p-1 cursor-pointer group rounded-lg bg-primary-50/50 dark:bg-primary-900/10 hover:bg-primary-100 dark:hover:bg-primary-900/20 ${snapshot.isDragging ? 'bg-primary-100 dark:bg-primary-900/30' : 'transition-colors transition-shadow duration-200'}`}
                             onClick={() => setIsOpen(!isOpen)}
                             onDoubleClick={handleSectionDoubleClick}
                         >

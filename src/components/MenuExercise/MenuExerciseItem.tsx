@@ -83,7 +83,7 @@ export default function MenuExerciseItem({
                         onClick={() => !isEditMode && handleAdd()}
                         onDoubleClick={handleDoubleClick}
                         className={`
-                        flex flex-col p-2 mb-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm border text-sm group transition-all duration-200
+                        flex flex-col p-2 mb-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm border text-sm group transition-colors transition-shadow duration-200
                         ${snapshot.isDragging ? 'shadow-xl ring-2 ring-primary-500 z-[100]' : 'border-primary-100 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-700'}
                         ${isEditMode && !snapshot.isDragging ? 'border-primary-200 dark:border-primary-900/50' : ''}
                     `}

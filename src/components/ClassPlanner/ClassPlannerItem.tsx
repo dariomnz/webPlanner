@@ -52,7 +52,7 @@ export default function ClassPlannerItem({ isEditMode, exerciseId, index }: Sort
                     {...provided.draggableProps}
                     {...provided.dragHandleProps}
                     className={`
-                        bg-white dark:bg-gray-800 border rounded-xl p-2 mb-1 shadow-sm group transition-all duration-200
+                        bg-white dark:bg-gray-800 border rounded-xl p-2 mb-1 shadow-sm group transition-colors transition-shadow duration-200
                         ${snapshot.isDragging ? 'shadow-xl ring-2 ring-primary-500 z-50' : 'border-primary-100 dark:border-gray-800'}
                     `}
                     onDoubleClick={() => { if (!isEditing) setIsEditing(true) }}
