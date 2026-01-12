@@ -33,8 +33,8 @@ export const exportClassPlan = (classTitle: string, plannedExercises: PlannedExe
             line-height: 1.6;
         }
         h1 {
-            color: #831843; /* pink-900 */
-            border-bottom: 2px solid #fbcfe8; /* pink-200 */
+            color: #831843; /* primary-900 */
+            border-bottom: 2px solid #fbcfe8; /* primary-200 */
             padding-bottom: 10px;
             margin-bottom: 30px;
             text-align: center;
@@ -57,7 +57,7 @@ export const exportClassPlan = (classTitle: string, plannedExercises: PlannedExe
         }
         .exercise-section {
             font-size: 1.2em;
-            color: #831843; /* pink-900 */
+            color: #831843; /* primary-900 */
             margin-right: 5px;
             font-weight: 500;
         }
@@ -67,7 +67,7 @@ export const exportClassPlan = (classTitle: string, plannedExercises: PlannedExe
             font-style: italic;
         }
         .bullet {
-            color: #db2777; /* pink-600 */
+            color: #db2777; /* primary-600 */
             margin-right: 10px;
             font-weight: bold;
         }

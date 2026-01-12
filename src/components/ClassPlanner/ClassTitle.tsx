@@ -28,7 +28,7 @@ export default function ClassTitle() {
     }, [handleEndEdit]);
 
     return (
-        <div className="mb-6 pb-4 border-b border-pink-100 dark:border-pink-900/50">
+        <div className="mb-6 pb-4 border-b border-primary-100 dark:border-primary-900/50">
             {isEditing ? (
                 <div className="flex items-center gap-2">
                     <input
@@ -37,7 +37,7 @@ export default function ClassTitle() {
                         onChange={handleTitleChange}
                         onKeyDown={handleKeyDown}
                         placeholder="Nombre de la clase (opcional)"
-                        className="w-full px-4 py-2 text-xl font-serif font-medium text-pink-950 dark:text-pink-100 bg-white dark:bg-gray-800 border-2 border-pink-300 dark:border-pink-900 rounded-lg focus:outline-none focus:border-pink-500 dark:focus:border-pink-700 transition-colors"
+                        className="w-full px-4 py-2 text-xl font-serif font-medium text-primary-950 dark:text-primary-100 bg-white dark:bg-gray-800 border-2 border-primary-300 dark:border-primary-900 rounded-lg focus:outline-none focus:border-primary-500 dark:focus:border-primary-700 transition-colors"
                         onFocus={(e) => e.target.setSelectionRange(e.target.value.length, e.target.value.length)}
                         autoFocus
                     />
@@ -53,7 +53,7 @@ export default function ClassTitle() {
                 <div className="flex items-center justify-between group">
                     {title ? (
                         <h2
-                            className="text-2xl text-center font-serif font-bold text-pink-700 dark:text-pink-400 cursor-pointer hover:text-pink-400 dark:hover:text-pink-300 transition-colors flex-grow"
+                            className="text-2xl text-center font-serif font-bold text-primary-700 dark:text-primary-400 cursor-pointer hover:text-primary-400 dark:hover:text-primary-300 transition-colors flex-grow"
                             onClick={handleStartEdit}
                             title="Click para editar"
                         >
@@ -62,7 +62,7 @@ export default function ClassTitle() {
                     ) : (
                         <button
                             onClick={handleStartEdit}
-                            className="w-full text-xl font-serif font-medium text-pink-400 dark:text-pink-600 hover:text-pink-600 dark:hover:text-pink-400 transition-colors flex items-center gap-2"
+                            className="w-full text-xl font-serif font-medium text-primary-400 dark:text-primary-600 hover:text-primary-600 dark:hover:text-primary-400 transition-colors flex items-center gap-2"
                         >
                             <Edit2 size={20} />
                             <span>Añadir título a la clase...</span>

@@ -84,8 +84,8 @@ export default function MenuExerciseItem({
                         onDoubleClick={handleDoubleClick}
                         className={`
                         flex flex-col p-2 mb-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm border text-sm group transition-all duration-200
-                        ${snapshot.isDragging ? 'shadow-xl ring-2 ring-pink-500 z-[100]' : 'border-pink-100 dark:border-gray-700 hover:border-pink-300 dark:hover:border-pink-700'}
-                        ${isEditMode && !snapshot.isDragging ? 'border-pink-200 dark:border-pink-900/50' : ''}
+                        ${snapshot.isDragging ? 'shadow-xl ring-2 ring-primary-500 z-[100]' : 'border-primary-100 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-700'}
+                        ${isEditMode && !snapshot.isDragging ? 'border-primary-200 dark:border-primary-900/50' : ''}
                     `}
                     >
                         <div className="flex items-center w-full">
@@ -98,7 +98,7 @@ export default function MenuExerciseItem({
                                             value={name}
                                             onChange={handleNameChange}
                                             onBlur={handleBlur}
-                                            className="w-full px-3 py-2 text-sm bg-pink-50/50 dark:bg-gray-950/50 border border-pink-100 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-200 dark:focus:ring-pink-900/50 text-gray-900 dark:text-gray-100"
+                                            className="w-full px-3 py-2 text-sm bg-primary-50/50 dark:bg-gray-950/50 border border-primary-100 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-900/50 text-gray-900 dark:text-gray-100"
                                             autoFocus
                                             placeholder="Nombre del ejercicio"
                                             rows={1}
@@ -111,7 +111,7 @@ export default function MenuExerciseItem({
                                             value={description!}
                                             onChange={handleDescriptionChange}
                                             onBlur={handleBlur}
-                                            className="w-full px-3 py-2 text-xs bg-pink-50/50 dark:bg-gray-950/50 border border-pink-100 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-200 dark:focus:ring-pink-900/50 text-gray-600 dark:text-gray-400"
+                                            className="w-full px-3 py-2 text-xs bg-primary-50/50 dark:bg-gray-950/50 border border-primary-100 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-900/50 text-gray-600 dark:text-gray-400"
                                             placeholder="Añade una descripción..."
                                         />
                                     </div>
@@ -120,7 +120,7 @@ export default function MenuExerciseItem({
                                             e.stopPropagation();
                                             handleEditSubmit();
                                         }}
-                                        className="w-full bg-pink-500 text-white text-sm font-bold py-2 rounded-lg hover:bg-pink-600 transition-colors shadow-sm"
+                                        className="w-full bg-primary-500 text-white text-sm font-bold py-2 rounded-lg hover:bg-primary-600 transition-colors shadow-sm"
                                     >
                                         Guardar Cambios
                                     </button>
@@ -134,7 +134,7 @@ export default function MenuExerciseItem({
                                                     e.stopPropagation();
                                                     setIsExpanded(!isExpanded);
                                                 }}
-                                                className="p-0.5 text-pink-300 dark:text-pink-500 hover:text-pink-500 dark:hover:text-pink-400 hover:bg-pink-50 dark:hover:bg-gray-700/50 rounded transition-colors flex-shrink-0"
+                                                className="p-0.5 text-primary-300 dark:text-primary-500 hover:text-primary-500 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-gray-700/50 rounded transition-colors flex-shrink-0"
                                                 title={isExpanded ? "Ocultar descripción" : "Ver descripción"}
                                             >
                                                 {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -158,7 +158,7 @@ export default function MenuExerciseItem({
                             )}
                         </div>
                         {!isEditing && isExpanded && description && (
-                            <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 pl-6 pr-2 whitespace-pre-wrap border-t border-pink-50 dark:border-gray-700 pt-1">
+                            <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 pl-6 pr-2 whitespace-pre-wrap border-t border-primary-50 dark:border-gray-700 pt-1">
                                 {description}
                             </div>
                         )}

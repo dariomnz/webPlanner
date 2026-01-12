@@ -18,6 +18,7 @@ import {
     Menu as LucideMenu,
     Sun as LucideSun,
     Moon as LucideMoon,
+    Palette as LucidePalette,
 } from 'lucide-react';
 import SVGBalletIcon from '../../assets/ballerina.svg?react';
 
@@ -40,3 +41,4 @@ export const Check = memo(LucideCheck);
 export const Menu = memo(LucideMenu);
 export const Sun = memo(LucideSun);
 export const Moon = memo(LucideMoon);
+export const Palette = memo(LucidePalette);

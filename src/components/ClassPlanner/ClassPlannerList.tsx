@@ -11,7 +11,7 @@ interface ClassPlannerListProps {
 export default function ClassPlannerList({ isEditMode }: ClassPlannerListProps) {
     const plannedExercises = useStoreItem('planned-exercises', () => dataStore.getPlannedExercises());
     return (
-        <div className={`min-h-[500px] bg-white/50 dark:bg-gray-900 rounded-3xl p-6 border-2 border-dashed transition-colors relative border-pink-400 dark:border-pink-900/50`}>
+        <div className={`min-h-[500px] bg-white/50 dark:bg-gray-900 rounded-3xl p-6 border-2 border-dashed transition-colors relative border-primary-400 dark:border-primary-900/50`}>
             <ClassTitle />
             <Droppable droppableId="planner-droppable" type="EXERCISE" isDropDisabled={isEditMode}>
                 {(provided, _snapshot) => (
@@ -21,7 +21,7 @@ export default function ClassPlannerList({ isEditMode }: ClassPlannerListProps) 
                     >
                         {
                             plannedExercises.length === 0 ? (
-                                <div className="h-full flex flex-col items-center justify-center text-pink-400/60 mt-10">
+                                <div className="h-full flex flex-col items-center justify-center text-primary-400/60 mt-10">
                                     <p className="text-xl font-medium">Tu clase está vacía</p>
                                     <p className="text-sm">Añade ejercicios desde el menú lateral</p>
                                 </div>

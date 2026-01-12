@@ -33,6 +33,7 @@ function App() {
             <MobileMenuToggle
                 isMenuVisible={isMenuVisible}
                 setIsMenuVisible={setIsMenuVisible}
+                setIsEditMode={setIsEditMode}
             />
         </>
     );

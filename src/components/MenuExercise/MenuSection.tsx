@@ -87,17 +87,17 @@ export default function MenuSection({
                     >
                         <div
                             {...provided.dragHandleProps}
-                            className={`flex items-center justify-between p-1 cursor-pointer group rounded-lg bg-pink-50/50 dark:bg-pink-900/10 hover:bg-pink-100 dark:hover:bg-pink-900/20 ${snapshot.isDragging ? 'bg-pink-100 dark:bg-pink-900/30' : 'transition-colors'}`}
+                            className={`flex items-center justify-between p-1 cursor-pointer group rounded-lg bg-primary-50/50 dark:bg-primary-900/10 hover:bg-primary-100 dark:hover:bg-primary-900/20 ${snapshot.isDragging ? 'bg-primary-100 dark:bg-primary-900/30' : 'transition-colors'}`}
                             onClick={() => setIsOpen(!isOpen)}
                             onDoubleClick={handleSectionDoubleClick}
                         >
-                            <div className={`flex flex-col text-pink-900 font-semibold w-full ${isRenamingSection ? 'p-2' : ''}`}>
+                            <div className={`flex flex-col text-primary-900 font-semibold w-full ${isRenamingSection ? 'p-2' : ''}`}>
                                 <div className="flex items-center">
                                     {!isRenamingSection && (
                                         <>
                                             {isOpen ? <ChevronDown className="w-4 h-4 mr-1" /> : <ChevronRight className="w-4 h-4 mr-1" />}
-                                            <span className="text-pink-600">{title}</span>
-                                            <span className="ml-2 text-xs text-pink-400 dark:text-pink-300 font-normal bg-white dark:bg-gray-800 px-2 py-0.5 rounded-full border border-pink-100 dark:border-pink-900/30">
+                                            <span className="text-primary-600">{title}</span>
+                                            <span className="ml-2 text-xs text-primary-400 dark:text-primary-300 font-normal bg-white dark:bg-gray-800 px-2 py-0.5 rounded-full border border-primary-100 dark:border-primary-900/30">
                                                 {filteredExercises.length}
                                             </span>
                                         </>
@@ -112,7 +112,7 @@ export default function MenuSection({
                                                 value={newSectionName}
                                                 onChange={(e) => setNewSectionName(e.target.value)}
                                                 onBlur={handleSectionRenameSubmit}
-                                                className="w-full px-3 py-2 text-sm bg-white dark:bg-gray-800 border border-pink-100 dark:border-pink-900/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-200 dark:focus:ring-pink-900/50 text-gray-900 dark:text-gray-100"
+                                                className="w-full px-3 py-2 text-sm bg-white dark:bg-gray-800 border border-primary-100 dark:border-primary-900/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-900/50 text-gray-900 dark:text-gray-100"
                                                 autoFocus
                                                 rows={1}
                                             />
@@ -122,7 +122,7 @@ export default function MenuSection({
                                                 e.stopPropagation();
                                                 handleSectionRenameSubmit();
                                             }}
-                                            className="w-full bg-pink-500 text-white text-sm font-bold py-2 rounded-lg hover:bg-pink-600 transition-colors shadow-sm"
+                                            className="w-full bg-primary-500 text-white text-sm font-bold py-2 rounded-lg hover:bg-primary-600 transition-colors shadow-sm"
                                         >
                                             Guardar Cambios
                                         </button>
@@ -137,7 +137,7 @@ export default function MenuSection({
                                             setIsAdding(!isAdding);
                                             setIsOpen(true);
                                         }}
-                                        className="p-1 text-pink-400 hover:text-pink-600 dark:hover:text-pink-300 hover:bg-white dark:hover:bg-gray-800 rounded transition-all"
+                                        className="p-1 text-primary-400 hover:text-primary-600 dark:hover:text-primary-300 hover:bg-white dark:hover:bg-gray-800 rounded transition-all"
                                         title="Añadir ejercicio"
                                     >
                                         <Plus className="w-4 h-4" />
@@ -162,7 +162,7 @@ export default function MenuSection({
                                     <div
                                         ref={exerciseProvided.innerRef}
                                         {...exerciseProvided.droppableProps}
-                                        className={`pl-2 border-l-2 border-pink-100 dark:border-pink-900/30 ml-2 mt-2 min-h-[5px] transition-colors ${exerciseSnapshot.isDraggingOver ? 'bg-pink-50/30 dark:bg-pink-900/10' : ''}`}
+                                        className={`pl-2 border-l-2 border-primary-100 dark:border-primary-900/30 ml-2 mt-2 min-h-[5px] transition-colors ${exerciseSnapshot.isDraggingOver ? 'bg-primary-50/30 dark:bg-primary-900/10' : ''}`}
                                     >
                                         {isAdding && (
                                             <form onSubmit={handleSubmit} className="mb-2 flex gap-2">
@@ -171,13 +171,13 @@ export default function MenuSection({
                                                     value={newExercise}
                                                     onChange={(e) => setNewExercise(e.target.value)}
                                                     placeholder="Nombre del ejercicio..."
-                                                    className="flex-1 min-w-0 px-2 py-1 text-sm rounded border border-pink-200 dark:border-pink-900/50 bg-white dark:bg-gray-800 focus:outline-none focus:ring-1 focus:ring-pink-400 dark:focus:ring-pink-600 dark:text-gray-100"
+                                                    className="flex-1 min-w-0 px-2 py-1 text-sm rounded border border-primary-200 dark:border-primary-900/50 bg-white dark:bg-gray-800 focus:outline-none focus:ring-1 focus:ring-primary-400 dark:focus:ring-primary-600 dark:text-gray-100"
                                                     onFocus={(e) => e.target.setSelectionRange(e.target.value.length, e.target.value.length)}
                                                     autoFocus
                                                 />
                                                 <button
                                                     type="submit"
-                                                    className="p-1 bg-pink-500 text-white rounded hover:bg-pink-600"
+                                                    className="p-1 bg-primary-500 text-white rounded hover:bg-primary-600"
                                                 >
                                                     <Plus className="w-4 h-4" />
                                                 </button>

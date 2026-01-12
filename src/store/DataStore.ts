@@ -10,6 +10,7 @@ class DataStore {
     private groups: string[] = [];
     private classTitle: string = '';
     private darkMode: boolean = false;
+    private appTheme: string = 'pink';
 
     private itemListeners: Map<string, Set<Listener>> = new Map();
     private saveTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -59,15 +60,22 @@ class DataStore {
             const darkMode = localStorage.getItem('dark-mode');
             if (darkMode !== null) {
                 this.darkMode = JSON.parse(darkMode);
-                this.applyDarkMode(this.darkMode);
             }
+            this.applyDarkMode(this.darkMode);
+            const appTheme = localStorage.getItem('app-theme');
+            if (appTheme !== null) {
+                this.appTheme = JSON.parse(appTheme);
+            } else {
+                this.appTheme = 'pink';
+            }
+            this.applyTheme(this.appTheme);
         } catch (e) {
             console.error('Error loading from local storage', e);
         }
     }
 
     private saveToLocalStorage(id?: string) {
-        const storageKeys = ['exercises', 'planned-exercises', 'sections', 'groups', 'class-title', 'dark-mode'];
+        const storageKeys = ['exercises', 'planned-exercises', 'sections', 'groups', 'class-title', 'dark-mode', 'app-theme'];
 
         if (!id) {
             storageKeys.forEach(k => this.pendingSaves.add(k));
@@ -103,6 +111,9 @@ class DataStore {
             }
             if (this.pendingSaves.has('dark-mode')) {
                 localStorage.setItem('dark-mode', JSON.stringify(this.darkMode));
+            }
+            if (this.pendingSaves.has('app-theme')) {
+                localStorage.setItem('app-theme', JSON.stringify(this.appTheme));
             }
             this.pendingSaves.clear();
             this.saveTimeout = null;
@@ -141,6 +152,7 @@ class DataStore {
     getGroups() { return this.groups; }
     getClassTitle() { return this.classTitle; }
     getDarkMode() { return this.darkMode; }
+    getAppTheme() { return this.appTheme; }
 
     getExercise(id: string) {
         return this.exercises.find(e => e.id === id) || this.plannedExercises.find(e => e.id === id);
@@ -197,6 +209,16 @@ class DataStore {
         } else {
             document.documentElement.classList.remove('dark');
         }
+    }
+
+    setAppTheme(theme: string) {
+        this.appTheme = theme;
+        this.applyTheme(theme);
+        this.notify('app-theme');
+    }
+
+    private applyTheme(theme: string) {
+        document.documentElement.setAttribute('data-theme', theme);
     }
 
     updateSection(oldName: string, newName: string, group: string) {

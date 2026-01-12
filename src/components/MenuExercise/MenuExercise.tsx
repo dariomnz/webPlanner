@@ -106,46 +106,26 @@ export default function MenuExercise({
     return (
         <>
             <div className={`
-            w-80 bg-white dark:bg-gray-900 border-r border-pink-200 dark:border-gray-800 h-full flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-10
+            w-80 bg-white dark:bg-gray-900 border-r border-primary-200 dark:border-gray-800 h-full flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-10
             md:relative md:left-0
             fixed transition-all duration-300 ease-in-out
             ${isVisible ? 'left-0' : '-left-80'}
         `}>
-                <div className="p-4 border-b border-pink-100 dark:border-gray-800 bg-pink-50/30 dark:bg-gray-800/50">
-                    <div className="flex justify-between items-center mb-3">
-                        <h2 className="text-xl font-serif text-pink-950 dark:text-pink-200 font-semibold">Ejercicios</h2>
-                        <div className="flex items-center gap-1">
-                            {isEditMode && (
-                                <div className="flex items-center gap-1 bg-white dark:bg-gray-800 border border-pink-100 dark:border-gray-700 p-1 rounded-lg shadow-sm mr-2">
-                                    <button
-                                        onClick={handleExportExercises}
-                                        className="p-1.5 rounded-md text-pink-400 hover:text-pink-600 dark:hover:text-pink-300 hover:bg-pink-50 dark:hover:bg-gray-700 transition-all"
-                                        title="Guardar ejercicios (Backup)"
-                                    >
-                                        <Download size={16} />
-                                    </button>
-                                    <label className="p-1.5 rounded-md text-pink-400 hover:text-pink-600 dark:hover:text-pink-300 hover:bg-pink-50 dark:hover:bg-gray-700 transition-all cursor-pointer" title="Cargar ejercicios">
-                                        <Upload size={16} />
-                                        <input
-                                            type="file"
-                                            accept=".json"
-                                            onChange={handleFileChange}
-                                            className="hidden"
-                                        />
-                                    </label>
-                                </div>
-                            )}
-                            <div className="flex items-center gap-1 bg-white dark:bg-gray-800 border border-pink-100 dark:border-gray-700 p-1 rounded-lg shadow-sm">
+                <div className="p-4 border-b border-primary-100 dark:border-gray-800 bg-primary-50/30 dark:bg-gray-800/50">
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-xl font-serif text-primary-950 dark:text-primary-200 font-semibold">Ejercicios</h2>
+                        <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1 bg-white dark:bg-gray-800 border border-primary-100 dark:border-gray-700 p-1 rounded-lg shadow-sm">
                                 <button
                                     onClick={() => onEditModeChange(false)}
-                                    className={`p-1.5 rounded-md transition-all ${!isEditMode ? 'bg-pink-100 dark:bg-pink-900/40 text-pink-700 dark:text-pink-300 shadow-sm' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                                    className={`p-2 rounded-md transition-all ${!isEditMode ? 'bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 shadow-sm' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
                                     title="Modo Planificación"
                                 >
                                     <Calendar size={16} />
                                 </button>
                                 <button
                                     onClick={() => onEditModeChange(true)}
-                                    className={`p-1.5 rounded-md transition-all ${isEditMode ? 'bg-pink-100 dark:bg-pink-900/40 text-pink-700 dark:text-pink-300 shadow-sm' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                                    className={`p-2 rounded-md transition-all ${isEditMode ? 'bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 shadow-sm' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
                                     title="Modo Edición"
                                 >
                                     <Pencil size={16} />
@@ -154,6 +134,29 @@ export default function MenuExercise({
                             <ThemeToggle />
                         </div>
                     </div>
+
+                    {isEditMode && (
+                        <div className="flex items-center gap-2 mb-4">
+                            <button
+                                onClick={handleExportExercises}
+                                className="flex-1 flex items-center justify-center gap-2 py-2 px-3 bg-white dark:bg-gray-800 border border-primary-200 dark:border-gray-700 text-primary-600 dark:text-primary-400 rounded-lg text-xs font-medium hover:bg-primary-50 dark:hover:bg-gray-700 transition-all shadow-sm"
+                                title="Guardar ejercicios (Backup)"
+                            >
+                                <Download size={14} />
+                                <span>Exportar</span>
+                            </button>
+                            <label className="flex-1 flex items-center justify-center gap-2 py-2 px-3 bg-white dark:bg-gray-800 border border-primary-200 dark:border-gray-700 text-primary-600 dark:text-primary-400 rounded-lg text-xs font-medium hover:bg-primary-50 dark:hover:bg-gray-700 transition-all shadow-sm cursor-pointer" title="Cargar ejercicios">
+                                <Upload size={14} />
+                                <span>Importar</span>
+                                <input
+                                    type="file"
+                                    accept=".json"
+                                    onChange={handleFileChange}
+                                    className="hidden"
+                                />
+                            </label>
+                        </div>
+                    )}
 
                     {/* Selector de grupos */}
                     <MenuGroupSelector

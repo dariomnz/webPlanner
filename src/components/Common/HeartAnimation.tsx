@@ -45,7 +45,7 @@ function AnimationOverlay({ onComplete }: { onComplete: () => void }) {
             {/* Heart animation */}
             <div className="relative animate-heart-pop">
                 <Heart
-                    className="text-pink-500 drop-shadow-2xl animate-heart-pulse"
+                    className="text-primary-500 drop-shadow-2xl animate-heart-pulse"
                     size={200}
                     fill="currentColor"
                     strokeWidth={1.5}
@@ -54,7 +54,7 @@ function AnimationOverlay({ onComplete }: { onComplete: () => void }) {
                 {/* Ballerina icon in the center with spin animation */}
                 <div className="absolute inset-0 flex items-center justify-center">
                     <BalletIcon
-                        className="fill-pink-300 animate-ballerina-spin"
+                        className="fill-primary-300 animate-ballerina-spin"
                         style={{
                             width: '100px',
                             height: '100px',
@@ -80,7 +80,7 @@ function AnimationOverlay({ onComplete }: { onComplete: () => void }) {
                             }}
                         >
                             <Heart
-                                className="text-pink-400"
+                                className="text-primary-400"
                                 size={particle.size}
                                 fill="currentColor"
                                 style={{
@@ -119,7 +119,7 @@ export default function HeartAnimation() {
         <>
             <button
                 onClick={() => setIsVisible(true)}
-                className="p-4 bg-pink-500 text-white rounded-full shadow-lg hover:bg-pink-600 transition-all scale-70 active:scale-60 animate-heart-pop"
+                className="p-4 bg-primary-500 text-white rounded-full shadow-lg hover:bg-primary-600 transition-all scale-70 active:scale-60 animate-heart-pop"
                 aria-label="Mostrar corazón"
             >
                 <Heart fill="currentColor" />
