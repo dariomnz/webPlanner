@@ -9,6 +9,7 @@ class DataStore {
     private sections: Section[] = [];
     private groups: string[] = [];
     private classTitle: string = '';
+    private darkMode: boolean = false;
 
     private itemListeners: Map<string, Set<Listener>> = new Map();
     private saveTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -55,13 +56,18 @@ class DataStore {
             if (sections) this.sections = JSON.parse(sections);
             if (groups) this.groups = JSON.parse(groups);
             if (title) this.classTitle = JSON.parse(title);
+            const darkMode = localStorage.getItem('dark-mode');
+            if (darkMode !== null) {
+                this.darkMode = JSON.parse(darkMode);
+                this.applyDarkMode(this.darkMode);
+            }
         } catch (e) {
             console.error('Error loading from local storage', e);
         }
     }
 
     private saveToLocalStorage(id?: string) {
-        const storageKeys = ['exercises', 'planned-exercises', 'sections', 'groups', 'class-title'];
+        const storageKeys = ['exercises', 'planned-exercises', 'sections', 'groups', 'class-title', 'dark-mode'];
 
         if (!id) {
             storageKeys.forEach(k => this.pendingSaves.add(k));
@@ -94,6 +100,9 @@ class DataStore {
             }
             if (this.pendingSaves.has('class-title')) {
                 localStorage.setItem('class-title', JSON.stringify(this.classTitle));
+            }
+            if (this.pendingSaves.has('dark-mode')) {
+                localStorage.setItem('dark-mode', JSON.stringify(this.darkMode));
             }
             this.pendingSaves.clear();
             this.saveTimeout = null;
@@ -131,6 +140,7 @@ class DataStore {
     getSections() { return this.sections; }
     getGroups() { return this.groups; }
     getClassTitle() { return this.classTitle; }
+    getDarkMode() { return this.darkMode; }
 
     getExercise(id: string) {
         return this.exercises.find(e => e.id === id) || this.plannedExercises.find(e => e.id === id);
@@ -171,6 +181,22 @@ class DataStore {
             ? classTitle(this.classTitle)
             : classTitle;
         this.notify('class-title');
+    }
+
+    setDarkMode(darkMode: SetStateAction<boolean>) {
+        this.darkMode = typeof darkMode === 'function'
+            ? darkMode(this.darkMode)
+            : darkMode;
+        this.applyDarkMode(this.darkMode);
+        this.notify('dark-mode');
+    }
+
+    private applyDarkMode(dark: boolean) {
+        if (dark) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
     }
 
     updateSection(oldName: string, newName: string, group: string) {

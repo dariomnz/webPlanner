@@ -16,6 +16,8 @@ import {
     Edit2 as LucideEdit2,
     Check as LucideCheck,
     Menu as LucideMenu,
+    Sun as LucideSun,
+    Moon as LucideMoon,
 } from 'lucide-react';
 import SVGBalletIcon from '../../assets/ballerina.svg?react';
 
@@ -36,3 +38,5 @@ export const Upload = memo(LucideUpload);
 export const Edit2 = memo(LucideEdit2);
 export const Check = memo(LucideCheck);
 export const Menu = memo(LucideMenu);
+export const Sun = memo(LucideSun);
+export const Moon = memo(LucideMoon);

@@ -18,7 +18,7 @@ function App() {
     return (
         <>
             <DragDropContext onDragStart={dragAndDrop.handleDragStart} onDragEnd={dragAndDrop.handleDragEnd}>
-                <div className="flex flex-col md:flex-row h-dvh w-screen font-sans text-gray-900 overflow-hidden">
+                <div className="flex flex-col md:flex-row h-dvh w-screen font-sans text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-950 overflow-hidden transition-colors duration-300">
                     <MenuExercise
                         isEditMode={isEditMode}
                         onEditModeChange={setIsEditMode}

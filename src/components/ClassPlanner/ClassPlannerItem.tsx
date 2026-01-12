@@ -52,8 +52,8 @@ export default function ClassPlannerItem({ isEditMode, exerciseId, index }: Sort
                     {...provided.draggableProps}
                     {...provided.dragHandleProps}
                     className={`
-                        bg-white border rounded-xl p-2 mb-1 shadow-sm group
-                        ${snapshot.isDragging ? 'shadow-xl ring-2 ring-pink-500 z-50' : 'border-pink-100'}
+                        bg-white dark:bg-gray-800 border rounded-xl p-2 mb-1 shadow-sm group transition-all duration-200
+                        ${snapshot.isDragging ? 'shadow-xl ring-2 ring-pink-500 z-50' : 'border-pink-100 dark:border-gray-800'}
                     `}
                     onDoubleClick={() => { if (!isEditing) setIsEditing(true) }}
                 >
@@ -64,7 +64,7 @@ export default function ClassPlannerItem({ isEditMode, exerciseId, index }: Sort
                                     e.stopPropagation();
                                     setIsExpanded(!isExpanded);
                                 }}
-                                className="p-1 text-pink-300 hover:text-pink-500 hover:bg-pink-50 rounded transition-colors flex-shrink-0"
+                                className="p-1 text-pink-300 dark:text-pink-500 hover:text-pink-500 dark:hover:text-pink-400 hover:bg-pink-50 dark:hover:bg-gray-800 rounded transition-colors flex-shrink-0"
                                 title={isExpanded ? "Ocultar descripción" : "Ver descripción"}
                             >
                                 {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
@@ -72,7 +72,7 @@ export default function ClassPlannerItem({ isEditMode, exerciseId, index }: Sort
                         )}
                         <div className="flex-1 min-w-0">
                             {!isEditing && <div className="flex items-center gap-2 mb-1">
-                                <span className="text-xs font-bold text-pink-400 tracking-wider">{section}</span>
+                                <span className="text-xs font-bold text-pink-600 tracking-wider uppercase">{section}</span>
                             </div>}
 
                             {isEditing ? (
@@ -83,7 +83,7 @@ export default function ClassPlannerItem({ isEditMode, exerciseId, index }: Sort
                                             value={name}
                                             onChange={(e) => handleNameChange(e.target.value)}
                                             onBlur={handleBlur}
-                                            className="w-full text-lg font-medium text-pink-950 bg-pink-50/50 border border-pink-100 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-200"
+                                            className="w-full text-lg font-medium text-pink-950 dark:text-pink-100 bg-pink-50/50 dark:bg-gray-950/50 border border-pink-100 dark:border-gray-700 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-200"
                                             autoFocus
                                         />
                                     </div>
@@ -94,7 +94,7 @@ export default function ClassPlannerItem({ isEditMode, exerciseId, index }: Sort
                                             value={section}
                                             onChange={(e) => handleSectionChange(e.target.value)}
                                             onBlur={handleBlur}
-                                            className="w-full text-sm font-medium text-pink-900/70 bg-pink-50/50 border border-pink-100 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-pink-200"
+                                            className="w-full text-sm font-medium text-pink-900/70 dark:text-pink-300/70 bg-pink-50/50 dark:bg-gray-950/50 border border-pink-100 dark:border-gray-700 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-pink-200"
                                         />
                                     </div>
 
@@ -105,7 +105,7 @@ export default function ClassPlannerItem({ isEditMode, exerciseId, index }: Sort
                                             onChange={(e) => handleDescriptionChange(e.target.value)}
                                             onBlur={handleBlur}
                                             placeholder="Añade notas sobre este ejercicio..."
-                                            className="w-full text-sm text-gray-600 bg-pink-50/50 border border-pink-100 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-200 min-h-[40px]"
+                                            className="w-full text-sm text-gray-600 dark:text-gray-400 bg-pink-50/50 dark:bg-gray-950/50 border border-pink-100 dark:border-gray-700 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-200 min-h-[40px]"
                                         />
                                     </div>
 
@@ -118,7 +118,7 @@ export default function ClassPlannerItem({ isEditMode, exerciseId, index }: Sort
                                 </div>
                             ) : (
                                 <div className="flex flex-col gap-1">
-                                    <h3 className="text-lg font-medium text-pink-950 leading-tight break-words">
+                                    <h3 className="text-lg font-medium text-pink-950 dark:text-pink-100 leading-tight break-words">
                                         {name}
                                     </h3>
                                 </div>
@@ -127,7 +127,7 @@ export default function ClassPlannerItem({ isEditMode, exerciseId, index }: Sort
 
                         {!isEditing && <button
                             onClick={handleRemove}
-                            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
+                            className="p-2 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-full transition-all"
                             title="Eliminar de la clase"
                         >
                             <Trash2 size={16} />
@@ -135,7 +135,7 @@ export default function ClassPlannerItem({ isEditMode, exerciseId, index }: Sort
                     </div>
 
                     {isExpanded && !isEditing && description && (
-                        <div className="mt-1 text-sm text-gray-600 whitespace-pre-wrap border-t border-pink-50 pt-2 ml-2">
+                        <div className="mt-1 text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap border-t border-pink-50 dark:border-gray-800 pt-2 ml-2">
                             {description}
                         </div>
                     )}

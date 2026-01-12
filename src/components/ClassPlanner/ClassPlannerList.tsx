@@ -11,7 +11,7 @@ interface ClassPlannerListProps {
 export default function ClassPlannerList({ isEditMode }: ClassPlannerListProps) {
     const plannedExercises = useStoreItem('planned-exercises', () => dataStore.getPlannedExercises());
     return (
-        <div className={`min-h-[500px] bg-white/50 rounded-3xl p-6 border-2 border-dashed transition-colors relative border-pink-400 bg-pink-50/50`}>
+        <div className={`min-h-[500px] bg-white/50 dark:bg-gray-900 rounded-3xl p-6 border-2 border-dashed transition-colors relative border-pink-400 dark:border-pink-900/50`}>
             <ClassTitle />
             <Droppable droppableId="planner-droppable" type="EXERCISE" isDropDisabled={isEditMode}>
                 {(provided, _snapshot) => (

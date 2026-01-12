@@ -93,25 +93,25 @@ export default function ClassPlanner({ isEditMode }: ClassPlannerProps) {
 
     return (
         <>
-            <div className="flex-1 h-full bg-beige-50 p-8 overflow-y-auto">
+            <div className="flex-1 h-full bg-beige-50 dark:bg-gray-800/40 p-8 overflow-y-auto transition-colors duration-300">
                 <div className="max-w-3xl mx-auto">
                     <header className="mb-8 text-center relative">
                         <div className="flex items-center justify-center gap-2">
 
                             <BalletIcon
-                                className={`fill-pink-300 size-24 inline-block cursor-pointer hover:fill-pink-400 transition-colors ${isLeftBallerinaSpinning ? 'animate-ballerina-spin' : ''}`}
+                                className={`fill-pink-300 dark:fill-pink-500 size-24 inline-block cursor-pointer hover:fill-pink-400 dark:hover:fill-pink-600 transition-colors ${isLeftBallerinaSpinning ? 'animate-ballerina-spin' : ''}`}
                                 onClick={handleLeftBallerinaClick}
                             />
-                            <h1 className="text-4xl font-serif text-pink-950 mb-2 font-bold "
+                            <h1 className="text-4xl font-serif text-pink-950 dark:text-pink-200 mb-2 font-bold "
                                 onClick={handleTitleClick}>
                                 Planificación de Clase
                             </h1>
                             <BalletIcon
-                                className={`fill-pink-300 scale-x-[-1] size-24 inline-block cursor-pointer hover:fill-pink-400 transition-colors ${isRightBallerinaSpinning ? 'animate-ballerina-spin' : ''}`}
+                                className={`fill-pink-300 dark:fill-pink-500 scale-x-[-1] size-24 inline-block cursor-pointer hover:fill-pink-400 dark:hover:fill-pink-600 transition-colors ${isRightBallerinaSpinning ? 'animate-ballerina-spin' : ''}`}
                                 onClick={handleRightBallerinaClick}
                             />
                         </div>
-                        <p className="text-pink-800/80 font-medium mb-4">Arrastra ejercicios aquí para construir tu clase</p>
+                        <p className="text-pink-800/80 dark:text-pink-300/80 font-medium mb-4">Arrastra ejercicios aquí para construir tu clase</p>
 
                     </header>
 
@@ -131,7 +131,7 @@ export default function ClassPlanner({ isEditMode }: ClassPlannerProps) {
                         {plannedExercises.length === 0 ? (
                             <button
                                 onClick={handleImportClick}
-                                className="flex items-center gap-2 px-6 py-3 text-pink-700 bg-white border border-pink-200 hover:bg-pink-50 hover:border-pink-300 rounded-full shadow-sm transition-all duration-200"
+                                className="flex items-center gap-2 px-6 py-3 text-pink-700 dark:text-pink-300 bg-white dark:bg-gray-800 border border-pink-200 dark:border-gray-700 hover:bg-pink-50 dark:hover:bg-gray-700 hover:border-pink-300 dark:hover:border-gray-600 rounded-full shadow-sm transition-all duration-200"
                                 title="Importar clase"
                             >
                                 <Upload size={18} />
@@ -141,7 +141,7 @@ export default function ClassPlanner({ isEditMode }: ClassPlannerProps) {
                             <>
                                 <button
                                     onClick={handleExport}
-                                    className="flex items-center gap-2 px-6 py-3 text-pink-700 bg-white border border-pink-200 hover:bg-pink-50 hover:border-pink-300 rounded-full shadow-sm transition-all duration-200"
+                                    className="flex items-center gap-2 px-6 py-3 text-pink-700 dark:text-pink-300 bg-white dark:bg-gray-800 border border-pink-200 dark:border-gray-700 hover:bg-pink-50 dark:hover:bg-gray-700 hover:border-pink-300 dark:hover:border-gray-600 rounded-full shadow-sm transition-all duration-200"
                                     title="Descargar clase"
                                 >
                                     <Download size={18} />
@@ -149,7 +149,7 @@ export default function ClassPlanner({ isEditMode }: ClassPlannerProps) {
                                 </button>
                                 <button
                                     onClick={handleClearAll}
-                                    className="flex items-center gap-2 px-6 py-3 text-red-600 bg-white border border-red-200 hover:bg-red-50 hover:border-red-300 rounded-full shadow-sm transition-all duration-200"
+                                    className="flex items-center gap-2 px-6 py-3 text-red-600 dark:text-red-400 bg-white dark:bg-gray-800 border border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-950/30 hover:border-red-300 dark:hover:border-red-800 rounded-full shadow-sm transition-all duration-200"
                                     title="Borrar toda la clase"
                                 >
                                     <Trash2 size={18} />

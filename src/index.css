@@ -2,7 +2,39 @@
 @config "../tailwind.config.js";
 
 @layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  :root.dark {
+    color-scheme: dark;
+  }
+
   body {
     @apply bg-beige-50 text-gray-800 antialiased;
+  }
+
+  .dark ::-webkit-scrollbar-thumb,
+  .dark::-webkit-scrollbar-thumb {
+    @apply bg-gray-950 text-gray-100;
+  }
+
+  /* Estilos personalizados para scrollbars */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-pink-200 rounded-full border-2 border-transparent bg-clip-padding hover:bg-pink-300 transition-colors;
+  }
+
+  .dark ::-webkit-scrollbar-thumb,
+  .dark::-webkit-scrollbar-thumb {
+    @apply bg-gray-700;
   }
 }
