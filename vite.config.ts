@@ -1,4 +1,5 @@
-import { defineConfig } from 'vite'
+/// <reference types="vitest" />
+import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import svgr from 'vite-plugin-svgr';
 import reactScan from 'vite-plugin-react-scan';
@@ -17,6 +18,12 @@ export default defineConfig({
             },
         }),
     ],
+    test: {
+        globals: true,
+        environment: 'jsdom',
+        setupFiles: './src/setupTests.ts',
+        include: ['tests/**/*.{test,spec}.{ts,tsx}'],
+    },
     server: {
         host: true, // Expone el servidor a la red local
         port: 5173, // Puerto por defecto de Vite
@@ -33,3 +40,4 @@ export default defineConfig({
         },
     },
 })
+
